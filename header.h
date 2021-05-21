@@ -187,3 +187,6 @@ bool isCoordsEquals(Coord, Coord);
 
 // Copy the map content into an other map
 void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MAP]);
+
+// Try to find a room exit
+Frame* searchAnExit(char map[SIZE_MAP][SIZE_MAP], Coord entry);

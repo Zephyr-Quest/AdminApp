@@ -138,3 +138,7 @@ void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MA
         }
     }
 }
+
+Frame* searchAnExit(char map[SIZE_MAP][SIZE_MAP], Coord entry){
+    return NULL;
+}
