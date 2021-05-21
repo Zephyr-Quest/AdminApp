@@ -129,7 +129,7 @@ Map* * getAllMaps(size_t* nb_maps){
         char* final_author = malloc(MAX_NAME_SIZE * sizeof(char));
         strcpy(final_author, json_object_get_string(author));
         Map* new_map = createMap(final_name, final_author);
-
+        
         for (size_t j = 0; j < json_object_array_length(items); j++){
             item = json_object_array_get_idx(items, j);
             json_object_object_get_ex(item, "id", &id);

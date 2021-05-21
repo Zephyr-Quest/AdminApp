@@ -15,12 +15,18 @@
 #define NB_BUTTON_MAX 5 // Maximum number of button 
 #define NB_LEVER_MAX 5  // Maximum number of lever
 #define NB_WALL_MAX 20  // Maximum number of wall
-#define SIZE_X 10   // UNUSED FIXME:
-#define SIZE_Y 10   // UNUSED FIXME:
 #define MAX_INTERACTION 3   // Maximum interaction for items
 #define MAX_NAME_SIZE 255   // Maximum caracters for naming map
 #define SIZE_MAP 15 // Size of map
 #define MAX_OBJECT ((SIZE_MAP * SIZE_MAP) - 1)
+
+// Start point
+#define START_X 0
+#define START_Y 7
+
+// End point
+#define END_X 14
+#define END_Y 7
 
 // Frame Strucure
 typedef struct Frame
@@ -39,6 +45,10 @@ typedef struct Map
     struct Frame* items[MAX_OBJECT]; // Object in the map
     int nb_items;                   // Number of objects in the map
 } Map;
+
+/*
+ * GENERATOR
+ */
 
 // Return random number, between ]min ; max] 
 int nbRand(int nbMin, int nbMax);
@@ -86,30 +96,7 @@ int deleteFrameInMap(Map* map, int posX, int posY, int id_object, bool verbose);
 bool checkCoordinates (int posx, int posy); 
 
 // Place door(s) on the map
-int door(Map* map);
-
-/*
- * FILES
- */
-
-typedef struct Element Element;
-struct Element {
-    Frame* data;
-    Element *next;
-};
-typedef struct File File;
-struct File {
-    Element *first;
-};
-
-// Init a file
-File initFile();
-
-// Put a new value to the file
-void put(File *file, Frame* data);
-
-// Pull the first value of the file (remove it)
-Frame* pull(File *file);
+int placeDoor(Map* map);
 
 /*
  * HTTP
@@ -118,6 +105,12 @@ Frame* pull(File *file);
 struct MemoryStruct {
   char *memory;
   size_t size;
+};
+
+typedef struct Coord Coord;
+struct Coord {
+    size_t x;
+    size_t y;
 };
 
 // Check if a HTTP request was succeeded by its response code
@@ -137,3 +130,60 @@ Map* getMapByName(const char* name);
 
 // Upload a new generated map to the server
 bool uploadNewMap(Map* map);
+
+/*
+ * FILES
+ */
+
+typedef struct Element Element;
+struct Element {
+    Coord data;
+    Element *next;
+};
+typedef struct File File;
+struct File {
+    Element *first;
+};
+
+// Init a file
+File initFile();
+
+// Put a new value to the file
+void put(File *file, Coord data);
+
+// Pull the first value of the file (remove it)
+Coord pull(File *file);
+
+/*
+ * SOLVER
+ */
+
+// Search the four near points around a specific point
+Coord* getNearPoints(Coord center);
+
+// Try to find a way from 'start' point to 'end' point
+bool pathfinding(char map[SIZE_MAP][SIZE_MAP], Coord start, Coord end, bool verbose);
+
+// Check if a point is in the map
+bool isInMap(Coord point);
+
+// return the frame at position x, y
+Frame* locateFrameByCoord(Map* map, Coord coord, bool verbose);
+
+// Generate a 2D array which store a Map
+void generateMapArray(char destination[SIZE_MAP][SIZE_MAP], Map* source);
+
+// Generate a 2D array which store a Map
+void printMapArray(char map[SIZE_MAP][SIZE_MAP], bool show_zeros);
+
+// Check if a char is an obactle
+bool isObstacle(char);
+
+// Check if a char can be hover by the player
+bool canBeHover(char);
+
+// Check if two points are equals or not
+bool isCoordsEquals(Coord, Coord);
+
+// Copy the map content into an other map
+void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MAP]);

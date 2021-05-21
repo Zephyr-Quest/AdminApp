@@ -6,7 +6,7 @@ File initFile(){
     return new_file;
 }
 
-void put(File *file, Frame* data) {
+void put(File *file, Coord data) {
     Element *new_elem = malloc(sizeof(*new_elem));
     if (file == NULL || new_elem == NULL) {
         exit(EXIT_FAILURE);
@@ -24,11 +24,11 @@ void put(File *file, Frame* data) {
     }
 }
 
-Frame* pull(File *file) {
+Coord pull(File *file) {
     if (file == NULL) {
         exit(EXIT_FAILURE);
     }
-    Frame* to_pull;
+    Coord to_pull;
     if (file->first != NULL) {
         Element *el = file->first;
         to_pull = el->data;

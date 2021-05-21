@@ -164,7 +164,6 @@ Frame* createFrameOnWall(Map* map, int posX, int posY, int id_object)
             tmp->usages[0] = NULL;
             addFrameInMap(map, tmp);
         }
-        
     }
     else
     {
@@ -200,10 +199,10 @@ void display(Map* map)
                         printf("l ");
                         break;
                     case 3:     // wall
-                        printf("1 ");
+                        printf("& ");
                         break;
                     case 4:     // hole
-                        printf("o ");
+                        printf("@ ");
                         break;
                     case 5:     // torch
                         printf("* ");
@@ -248,14 +247,8 @@ int trumpWall(Map* map, int dir) //FIXME: Corriger les problèmes de fonctions i
         }
         for (size_t y = 0; y < 15; y++)
         {
-            
-            //if (x == 7) return trumpWall(map,dir + 1);
-            //if (locateFrame(map, x-1, 7, false) == NULL && locateFrame(map, x+1, 7, false) == NULL)
-            //{ // Check if is there no wall in front and behind it
                 Frame* tmp = createFrame(x,y,3);
                 if (tmp != NULL) addFrameInMap(map, tmp);
-           // }
-            //else trumpWall(map, dir + 1);      
         }
     }
     else if (dir == 2)
@@ -270,23 +263,108 @@ int trumpWall(Map* map, int dir) //FIXME: Corriger les problèmes de fonctions i
         }
         for (size_t x = 0; x < 15; x++)
         {
-
-            
-          //  if (locateFrame(map, 7, y-1, false) == NULL && locateFrame(map, 7, y+1, false) == NULL)
-          //  {   // Check if is there no wall in front and behind it
             Frame* tmp = createFrame(x,y,3);
             if (tmp != NULL) addFrameInMap(map, tmp);
-          //  }
-           // else trumpWall(map, dir - 1);
         }
     }
     else return EXIT_FAILURE;
     return EXIT_SUCCESS;
 }
 
-int door(Map* map)
+int placeDoor(Map* map)
 {
     int x = 0;
-    int y = 0;
+    int y = 7;
+
+    int coord[4];
+    bool creation = true;
+    bool posed = false;
     
+    Frame* wall;
+    while(creation == true)
+    {
+        do
+        {
+            wall = locateFrame(map, x, y, false);
+            y--;
+        } while (wall == NULL);
+        coord[0] = x;
+        coord[1] = y;
+        printf("%d ",x);
+        do
+        {
+            wall = locateFrame(map, x, y-1, false);
+            x++;
+        } while (wall == NULL && x < 14);
+        printf("%d       ",x);
+        do
+        {
+            puts("undeuxtrois");
+            wall = locateFrame(map, x-1, y, false);
+            y++;
+            if(x + 1 ==14 && y == 7) creation = false;
+        } while(wall == NULL);
+        coord[2] = x;
+        coord[3] = y;
+
+        printf("%d; %d; %d; %d", coord[0], coord[1], coord[2], coord[3]);
+        if (creation == true)
+        {
+            posed = false;
+            while(posed == false)
+            {  
+                switch (nbRand(0,4))
+                {
+                case 1:
+                    if(coord[0] != 0)
+                    {
+                        createFrameOnWall(map, coord[0], coord[3] - coord[1], 2);
+                        posed = true;
+                        x = coord[0];
+                        y = coord[3];
+                        x--;
+                        y--;
+                        do
+                        {
+                            wall = locateFrame(map, x, y, false);
+                            x--;
+                        }while(wall == NULL);
+                        coord[0] = x;
+                    }
+                    break;
+                
+                case 2:
+                    if(coord[1] != 0)
+                    {
+                        createFrameOnWall(map, coord[2] - coord[0], coord[1], 2);
+                        posed = true;
+                    }
+                    break;
+
+                case 3:
+                    if(coord[2] != 14)
+                    {
+                        createFrameOnWall(map, coord[2], coord[3] - coord[1], 2);
+                        posed = true;
+                    }
+                    break;
+
+                case 4:
+                    if(coord[3] != 14)
+                    {
+                        createFrameOnWall(map, coord[2] - coord[0], coord[3], 2);
+                        posed = true;
+                    }
+                    break;
+                
+                default:
+                    break;
+                }
+            }    
+        }
+    }
+
+    //createFrameOnWall(map, wall->x, wall->y, 2);
+    
+    return EXIT_SUCCESS;
 }
