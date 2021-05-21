@@ -190,3 +190,9 @@ void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MA
 
 // Try to find a room exit
 Frame* searchAnExit(char map[SIZE_MAP][SIZE_MAP], Coord entry);
+
+// Walk next to a wall, keeping the wall to the left
+// 'start' is the starting point
+// |  | (x+direction_x;y+direction_y) |  |
+// |  | start                         |  |
+Coord followWallWithDirection(Coord start, int direction_x, int direction_y);

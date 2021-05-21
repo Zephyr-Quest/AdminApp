@@ -140,5 +140,19 @@ void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MA
 }
 
 Frame* searchAnExit(char map[SIZE_MAP][SIZE_MAP], Coord entry){
+    Coord* current_nears = getNearPoints(entry);
+    int i = 0;
+    while(isInMap(current_nears[i]) && i < 4){
+        Coord current_near = current_nears[i];
+        char current_near_value = map[current_near.y][current_near.x];
+        // if(current_near_value.)
+        i++;
+    }
+    
     return NULL;
+}
+
+Coord followWallWithDirection(Coord start, int direction_x, int direction_y){
+    Coord destination;
+    return destination;
 }
