@@ -214,6 +214,7 @@ bool solve(Map* map, Stack* interactions){
     end_point.x = END_X; end_point.y = END_Y;
 
     bool res = true;    // true means resolvable, false means unresolvable
+    size_t nb_actions = 0;
     
     while(!pathfinding(map, player, end_point, false) && res){
         Frame** blocking_doors = searchExits(map, player);
@@ -224,7 +225,13 @@ bool solve(Map* map, Stack* interactions){
             Frame* lever = getDoorLever(map, blocking_doors[i], player);
             if(lever != NULL){
                 can_exit = openDoor(map, lever, blocking_doors[i], &player);
-                if(can_exit) putFrame(interactions, lever);
+                if(can_exit) {
+                    if(nb_actions >= MAX_ACTIONS) res = false;
+                    else {
+                        putFrame(interactions, lever);
+                        nb_actions++;
+                    }
+                }
             }
             i++;
         }

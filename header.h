@@ -17,6 +17,7 @@
 #define NB_WALL_MAX 20  // Maximum number of wall
 #define NB_DOOR_MAX 15  // Maximum number of wall
 #define MAX_INTERACTION 3   // Maximum interaction for items
+#define MAX_ACTIONS 100 // Maximum of player actions
 #define MAX_NAME_SIZE 255   // Maximum caracters for naming map
 #define SIZE_MAP 15 // Size of map
 #define MAX_OBJECT ((SIZE_MAP * SIZE_MAP) - 1)

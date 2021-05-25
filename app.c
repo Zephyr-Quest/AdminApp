@@ -18,7 +18,7 @@ int main() {
 
     // Get the map named 'test'
     puts("The map named 'map1' :");
-    Map* map1 = getMapByName("map1");
+    Map* map1 = getMapByName("map2");
     if (map1 == NULL) puts("The map named 'map1' doesn't exist...");
     else {
         printf("%s by %s is saved in the memory\n", map1->name, map1->author);

@@ -350,6 +350,7 @@ int placeDoor(Map* map)
             while(posed == false)
             {  
                 int nb = nbRand(0,4);
+                //int nb = 2;
                 printf("nb rand = %d\n", nb);
                 switch (nb)
                 {
@@ -376,9 +377,10 @@ int placeDoor(Map* map)
                 case 2: // top wall
                     if(coord[1] != 0)
                     {
-                        pos = nbRand(coord[0], coord[2]);
+                        pos = nbRand(coord[0], coord[2] - 1);
+                        printf("%d / %d : %d\n", coord[0], coord[2], pos);
 
-                        createFrameOnWall(map, coord[1], pos, 2);
+                        createFrameOnWall(map, pos, coord[1], 2);
                         posed = true;
                     }
                     break;
@@ -386,7 +388,7 @@ int placeDoor(Map* map)
                 case 3: // right wall
                     if(coord[2] != 14)
                     {
-                        pos = nbRand(coord[1], coord[3]);
+                        pos = nbRand(coord[1], coord[3] - 1);
                         printf("%d / %d : %d\n", coord[1], coord[3], pos);
                         
                         createFrameOnWall(map, coord[2], pos, 2);
@@ -398,8 +400,9 @@ int placeDoor(Map* map)
                     if(coord[3] != 14)
                     {
                         pos = nbRand(coord[0], coord[2]);
+                        printf("%d / %d : %d\n", coord[0], coord[2], pos);
 
-                        createFrameOnWall(map, coord[3], pos, 2);
+                        createFrameOnWall(map, pos, coord[3], 2);
                         posed = true;
                     }
                     break;
