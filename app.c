@@ -1,9 +1,10 @@
 #include "header.h"
 
 int main() {
-    Coord start_point, end_point;
+    srand(time(NULL));
+    Coord start_point;
     start_point.x = START_X; start_point.y = START_Y;
-    end_point.x = END_X; end_point.y = END_Y;
+    // end_point.x = END_X; end_point.y = END_Y;
 
     // Get all saved maps
     printf("All maps :\n");
@@ -25,19 +26,22 @@ int main() {
     else {
         printf("%s by %s is saved in the memory\n", map1->name, map1->author);
         printf("\n");
-        char map1_test[SIZE_MAP][SIZE_MAP];
-        generateMapArray(map1_test, map1);
-        printMapArray(map1_test, false);
-        // Coord test_point;
-        // test_point.x = 2; test_point.y = 14;
-        printf("%d", pathfinding(map1_test, start_point, end_point, true));
+        display(map1, false);
+        Frame** blocking_doors = searchExits(map1, start_point);
+        Frame* blocking_door = blocking_doors[0];
+        if(blocking_door != NULL){
+            if(blocking_door->usages[0] == NULL) printf("test");
+            printf("%d\n", openDoor(map1, blocking_door, &start_point));
+        }
     }
     
-    //Map* map2 = createMap("Eng", "moi" );
-    // trumpWall(map2, nbRand(0,2));
-    // placeDoor(map2);
-    // display(map2);
+    // Map* map2 = createMap("Eng", "moi" );
+    Map* map2 = generateRandomMap(2);
+    
+    addFrameInMap(map2, createFrame(0, 6, 2));
+    display(map2, true);
+    placeDoor(map2);
+    display(map2, false);
 
-    printf("\n");
     return 0;
 }

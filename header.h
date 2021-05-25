@@ -15,6 +15,7 @@
 #define NB_BUTTON_MAX 5 // Maximum number of button 
 #define NB_LEVER_MAX 5  // Maximum number of lever
 #define NB_WALL_MAX 20  // Maximum number of wall
+#define NB_DOOR_MAX 15  // Maximum number of wall
 #define MAX_INTERACTION 3   // Maximum interaction for items
 #define MAX_NAME_SIZE 255   // Maximum caracters for naming map
 #define SIZE_MAP 15 // Size of map
@@ -27,6 +28,14 @@
 // End point
 #define END_X 14
 #define END_Y 7
+
+// Coordinates Structure
+
+typedef struct Coord Coord;
+struct Coord {
+    size_t x;
+    size_t y;
+};
 
 // Frame Strucure
 typedef struct Frame
@@ -45,6 +54,25 @@ typedef struct Map
     struct Frame* items[MAX_OBJECT]; // Object in the map
     int nb_items;                   // Number of objects in the map
 } Map;
+
+typedef struct WallPosition
+{
+    int x;
+    int y;
+} WallPosition;
+
+// Wall Position structure
+typedef struct Walls
+{
+    int nbVert;
+    int nbHori;
+    struct WallPosition count[4];
+} Walls;
+
+
+
+Frame** getAllItemInMap(Map* map, int id_object);
+
 
 /*
  * GENERATOR
@@ -78,7 +106,7 @@ Frame* getFrameAtRank(Frame* tab[], int nb_item, int item);
 Frame* locateFrame(Map* map, int posx, int posy, bool verbose);
 
 // frere il se comprend celui ci non ?
-void display(Map* map);
+void display(Map* map, bool show_zeros);
 
 // Generate a random map
 Map* generateRandomMap(int nb_item);
@@ -107,11 +135,6 @@ struct MemoryStruct {
   size_t size;
 };
 
-typedef struct Coord Coord;
-struct Coord {
-    size_t x;
-    size_t y;
-};
 
 // Check if a HTTP request was succeeded by its response code
 bool isHttpError(long http_code);
@@ -140,19 +163,19 @@ struct Element {
     Coord data;
     Element *next;
 };
-typedef struct File File;
-struct File {
+typedef struct Stack Stack;
+struct Stack {
     Element *first;
 };
 
 // Init a file
-File initFile();
+Stack initStack();
 
 // Put a new value to the file
-void put(File *file, Coord data);
+void put(Stack *file, Coord data);
 
 // Pull the first value of the file (remove it)
-Coord pull(File *file);
+Coord pull(Stack *file);
 
 /*
  * SOLVER
@@ -162,7 +185,7 @@ Coord pull(File *file);
 Coord* getNearPoints(Coord center);
 
 // Try to find a way from 'start' point to 'end' point
-bool pathfinding(char map[SIZE_MAP][SIZE_MAP], Coord start, Coord end, bool verbose);
+bool pathfinding(Map* map, Coord start, Coord end, bool verbose);
 
 // Check if a point is in the map
 bool isInMap(Coord point);
@@ -188,11 +211,8 @@ bool isCoordsEquals(Coord, Coord);
 // Copy the map content into an other map
 void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MAP]);
 
-// Try to find a room exit
-Frame* searchAnExit(char map[SIZE_MAP][SIZE_MAP], Coord entry);
+// Search all of blocking door
+Frame** searchExits(Map* map, Coord player);
 
-// Walk next to a wall, keeping the wall to the left
-// 'start' is the starting point
-// |  | (x+direction_x;y+direction_y) |  |
-// |  | start                         |  |
-Coord followWallWithDirection(Coord start, int direction_x, int direction_y);
+// Try to open a door, return false if the lever can't be reached
+bool openDoor(Map* map, Frame* door, Coord* player);

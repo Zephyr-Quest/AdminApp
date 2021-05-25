@@ -1,15 +1,15 @@
 #include "header.h"
 
-bool pathfinding(char map[SIZE_MAP][SIZE_MAP], Coord start, Coord end, bool verbose){
+bool pathfinding(Map* base_map, Coord start, Coord end, bool verbose){
     // Search and print distances
     char distance_map[SIZE_MAP][SIZE_MAP];
-    mapCopy(distance_map, map);
+    generateMapArray(distance_map, base_map);
     int distance = 1;
-    File near_points = initFile();
+    Stack near_points = initStack();
     put(&near_points, start);
 
     while(near_points.first != NULL){
-        File new_near_points = initFile();
+        Stack new_near_points = initStack();
 
         // Loop through the last near points file
         while(near_points.first != NULL){
@@ -139,20 +139,43 @@ void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MA
     }
 }
 
-Frame* searchAnExit(char map[SIZE_MAP][SIZE_MAP], Coord entry){
-    Coord* current_nears = getNearPoints(entry);
-    int i = 0;
-    while(isInMap(current_nears[i]) && i < 4){
-        Coord current_near = current_nears[i];
-        char current_near_value = map[current_near.y][current_near.x];
-        // if(current_near_value.)
+Frame** searchExits(Map* map, Coord player){
+    Frame** blocking_doors = (Frame**) malloc(NB_DOOR_MAX * sizeof(Frame*));
+    Frame** doors = getAllItemInMap(map, 2);
+    size_t i = 0, k = 0;
+    while(doors[i] != NULL){
+        Coord door_coord; door_coord.x = doors[i]->x; door_coord.y = doors[i]->y;
+        Coord* nears_doorpoints = getNearPoints(door_coord);
+
+        size_t j = 0;
+        bool is_blocking = false;
+        while(isInMap(nears_doorpoints[j]) && j < 4){
+            Coord current_near = nears_doorpoints[j];
+            if(locateFrameByCoord(map, current_near, false) == NULL && pathfinding(map, player, current_near, false)) {
+                is_blocking = !is_blocking;
+            }
+            j++;
+        }
+
+        if(is_blocking) {
+            blocking_doors[k] = doors[i];
+            k++;
+        }
         i++;
     }
-    
-    return NULL;
+
+    return blocking_doors;
 }
 
-Coord followWallWithDirection(Coord start, int direction_x, int direction_y){
-    Coord destination;
-    return destination;
+bool openDoor(Map* map, Frame* door, Coord* player){
+    size_t i = 0;
+    Frame* lever = NULL;
+    while (door->usages[i] != NULL && lever == NULL) {
+        lever = door->usages[i];
+        Coord lever_coord; lever_coord.x = lever->x; lever_coord.y = lever->y;
+        if(!pathfinding(map, *player, lever_coord, false)) lever = NULL;
+    }
+    if(lever == NULL) return false;
+    printf("%d;%d\n", lever->x, lever->y);
+    return true;
 }

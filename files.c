@@ -1,12 +1,12 @@
 #include "header.h"
 
-File initFile(){
-    File new_file;
+Stack initStack(){
+    Stack new_file;
     new_file.first = NULL;
     return new_file;
 }
 
-void put(File *file, Coord data) {
+void put(Stack *file, Coord data) {
     Element *new_elem = malloc(sizeof(*new_elem));
     if (file == NULL || new_elem == NULL) {
         exit(EXIT_FAILURE);
@@ -24,7 +24,7 @@ void put(File *file, Coord data) {
     }
 }
 
-Coord pull(File *file) {
+Coord pull(Stack *file) {
     if (file == NULL) {
         exit(EXIT_FAILURE);
     }

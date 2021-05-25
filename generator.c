@@ -49,6 +49,7 @@ int addElementInButton(Frame* button, Frame* door)
     if(button == NULL || door == NULL) return EXIT_FAILURE;
     if (button->id != 1) return EXIT_FAILURE;
     appendFrameAtEnd(button->usages, door);
+    appendFrameAtEnd(door->usages, button);
     return EXIT_SUCCESS;
 }
 
@@ -113,7 +114,7 @@ int deleteFrameInMap(Map* map, int posx, int posy, int id_object, bool verbose)
         {
             free(tmp);
             map->nb_items--;
-            return EXIT_SUCCESS;
+            return EXIT_SUCCESS; 
         } else {
             if (verbose == true) puts("La frame n'a pas pu être supprimé : Vérification de l'ID incorrect"); // TODO: Supprimer ce message
             return EXIT_FAILURE;
@@ -181,7 +182,7 @@ int addButtonInMap(Map* map, Frame* button, Frame* door) {
     return EXIT_SUCCESS;
 }
 
-void display(Map* map)
+void display(Map* map, bool show_zeros)
 {   // Create a double loop and go through them, checking for frames in map at the [x][y] coordinates
     for (int x = 0; x < SIZE_MAP; x++)
     { // For the x-axis
@@ -208,10 +209,15 @@ void display(Map* map)
                         printf("* ");
                         break;
                 } 
-            } else printf("  ");    // Do not display anything when there is no object
+            } else {
+                if(show_zeros){
+                    printf("0 "); // Do not display anything when there is no object
+                } else printf("  ");
+            }
         }
         puts(" ");  // Back
     }
+    printf("\n");
 }
 
 Map* generateRandomMap(int nb_item)
@@ -239,7 +245,7 @@ int trumpWall(Map* map, int dir) //FIXME: Corriger les problèmes de fonctions i
     {
         int x = nbRand(2,13);
         printf("x -> %d\n", x); // TODO: Retirer cette sécurité
-        while ((locateFrame(map, x-1, 7, false) != NULL) || (locateFrame(map, x+1, 7, false) != NULL ) || (locateFrame(map, x, 7, false) != NULL))
+        while ((locateFrame(map, x-1, 6, false) != NULL) || (locateFrame(map, x+1, 6, false) != NULL ) || (locateFrame(map, x, 6, false) != NULL))
         {
             x = nbRand(2,13);
             printf("new x -> %d\n", x); // TODO: Retirer cette sécurité
@@ -255,7 +261,7 @@ int trumpWall(Map* map, int dir) //FIXME: Corriger les problèmes de fonctions i
     { 
         int y = nbRand(1,14);
         printf("y -> %d\n", y); // TODO: Retirer cette sécurité
-        while (y == 7 || ((locateFrame(map, 1, y-1, false) != NULL) || (locateFrame(map, 1, y+1, false) != NULL ) || (locateFrame(map, 1, y, false) != NULL)))
+        while (y == 6 || ((locateFrame(map, 1, y-1, false) != NULL) || (locateFrame(map, 1, y+1, false) != NULL ) || (locateFrame(map, 1, y, false) != NULL)))
         {
             y = nbRand(0,14);
             printf("new y -> %d\n", y); // TODO: Retirer cette sécurité
@@ -275,45 +281,73 @@ int placeDoor(Map* map)
 {
     int x = 0;
     int y = 7;
+    int countWall = 0;
 
     int coord[4];
     bool creation = true;
     bool posed = false;
     
-    Frame* wall;
+    Frame* item;
+    Walls wall;
+
+    /*for (size_t x = 0; x < SIZE_MAP; x++)
+    {
+        if (locateFrame(map, x, y , false) != NULL)
+        {
+            wall.count[countWall].x = x;
+            countWall++;
+            wall.nbVert++;
+        }
+    }
+    printf("pos x du 1er mur : %d\n", wall.count[0].x);
+    printf("pos x du 2e mur : %d\n", wall.count[1].x);
+
+    printf("nb mur verticaux : %d\n", wall.nbVert);
+    */
+    
     while(creation == true)
     {
         do
         {
-            wall = locateFrame(map, x, y, false);
+            item = locateFrame(map, x, y + 1, true);
+            x--;
+            printf("%d",x);
+        } while (item == NULL && x >= 0);
+        x++;
+        do
+        {
+            item = locateFrame(map, x + 1, y, false);
             y--;
-        } while (wall == NULL);
+        }while (item == NULL && y >= 0);
+        y++;
         coord[0] = x;
         coord[1] = y;
-        printf("%d ",x);
+
         do
         {
-            wall = locateFrame(map, x, y-1, false);
+            item = locateFrame(map, x, y + 1, false);
             x++;
-        } while (wall == NULL && x < 14);
-        printf("%d       ",x);
-        do
+        } while (item == NULL && x < 15);
+        x--;
+        do 
         {
-            puts("undeuxtrois");
-            wall = locateFrame(map, x-1, y, false);
+            item = locateFrame(map, x - 1, y, false);
             y++;
             if(x + 1 ==14 && y == 7) creation = false;
-        } while(wall == NULL);
+        } while(item == NULL && y < 15);
+        y--;
         coord[2] = x;
         coord[3] = y;
 
-        printf("%d; %d; %d; %d", coord[0], coord[1], coord[2], coord[3]);
+        printf("\n%d; %d; %d; %d\n", coord[0], coord[1], coord[2], coord[3]);
         if (creation == true)
         {
             posed = false;
             while(posed == false)
             {  
-                switch (nbRand(0,4))
+                puts("ici");
+                int nb = 2; //nbRand(0,4);
+                switch (nb)
                 {
                 case 1:
                     if(coord[0] != 0)
@@ -326,9 +360,9 @@ int placeDoor(Map* map)
                         y--;
                         do
                         {
-                            wall = locateFrame(map, x, y, false);
+                            item = locateFrame(map, x, y, false);
                             x--;
-                        }while(wall == NULL);
+                        }while(item == NULL);
                         coord[0] = x;
                     }
                     break;
@@ -360,6 +394,8 @@ int placeDoor(Map* map)
                 default:
                     break;
                 }
+                posed = true;
+                creation = false;
             }    
         }
     }
@@ -367,4 +403,16 @@ int placeDoor(Map* map)
     //createFrameOnWall(map, wall->x, wall->y, 2);
     
     return EXIT_SUCCESS;
+}
+
+Frame** getAllItemInMap(Map* map, int id_object) {
+    Frame** items = (Frame**) malloc(NB_DOOR_MAX * sizeof(Frame));
+    size_t j = 0;
+    for (int i = 0; i < map->nb_items; i++){
+        if (map->items[i]->id == id_object) {
+            items[j] = map->items[i];
+            j++;
+        }
+    }
+    return items;
 }
