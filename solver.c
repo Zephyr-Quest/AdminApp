@@ -1,12 +1,12 @@
 #include "header.h"
 
-bool pathfinding(Map* base_map, Coord start, Coord end, bool verbose){
+bool moveTo(Map* base_map, Coord* player, Coord destination, bool verbose){
     // Search and print distances
     char distance_map[SIZE_MAP][SIZE_MAP];
     generateMapArray(distance_map, base_map);
     int distance = 1;
     Stack near_points = initStack();
-    put(&near_points, start);
+    put(&near_points, *player);
 
     while(near_points.first != NULL){
         Stack new_near_points = initStack();
@@ -21,7 +21,7 @@ bool pathfinding(Map* base_map, Coord start, Coord end, bool verbose){
             while(current_nears[i].x != SIZE_MAP && current_nears[i].y != SIZE_MAP && i < 4){
                 Coord current_near_point = current_nears[i];
                 char current_near_value = distance_map[current_near_point.y][current_near_point.x];
-                if(canBeHover(current_near_value) && !(isCoordsEquals(current_near_point, start) || isCoordsEquals(current_near_point, end))){
+                if(canBeHover(current_near_value) && !(isCoordsEquals(current_near_point, *player) || isCoordsEquals(current_near_point, destination))){
                     distance_map[current_near_point.y][current_near_point.x] = distance;
                     put(&new_near_points, current_near_point);
                 }
@@ -35,7 +35,7 @@ bool pathfinding(Map* base_map, Coord start, Coord end, bool verbose){
 
     // Check if a path exists
     bool res = false;
-    Coord* nears_endpoint = getNearPoints(end);
+    Coord* nears_endpoint = getNearPoints(destination);
     int i = 0;
     while(isInMap(nears_endpoint[i]) && i < 4){
         Coord current_near = nears_endpoint[i];
@@ -43,11 +43,17 @@ bool pathfinding(Map* base_map, Coord start, Coord end, bool verbose){
         if(current_near_value != 0 && !isObstacle(current_near_value)){
             // A path exists
             res = true;
+            player->x = current_near.x;
+            player->y = current_near.y;
         }
         i++;
     }
 
     return res;
+}
+
+bool pathfinding(Map* base_map, Coord start, Coord end, bool verbose){
+    return moveTo(base_map, &start, end, verbose);
 }
 
 Coord* getNearPoints(Coord center){
@@ -119,12 +125,16 @@ void printMapArray(char map[SIZE_MAP][SIZE_MAP], bool show_zeros){
     printf("\n");
 }
 
+void printCoord(Coord to_print){
+    printf("(%ld;%ld)\n", to_print.x, to_print.y);
+}
+
 bool isObstacle(char to_check){
-    return to_check == 'l' || to_check == '&' || to_check == '@';
+    return to_check == 'l' || to_check == '&' || to_check == '@' || to_check == 'u';
 }
 
 bool canBeHover(char to_check){
-    return to_check == 'u' || to_check == '*' || to_check == 0;
+    return to_check == '*' || to_check == 0;
 }
 
 bool isCoordsEquals(Coord c1, Coord c2){
@@ -167,15 +177,59 @@ Frame** searchExits(Map* map, Coord player){
     return blocking_doors;
 }
 
-bool openDoor(Map* map, Frame* door, Coord* player){
+Frame* getDoorLever(Map* map, Frame* door, Coord player){
     size_t i = 0;
     Frame* lever = NULL;
+    Coord lever_coord;
     while (door->usages[i] != NULL && lever == NULL) {
         lever = door->usages[i];
-        Coord lever_coord; lever_coord.x = lever->x; lever_coord.y = lever->y;
-        if(!pathfinding(map, *player, lever_coord, false)) lever = NULL;
+        lever_coord.x = lever->x; lever_coord.y = lever->y;
+        if(!pathfinding(map, player, lever_coord, false)) lever = NULL;
     }
-    if(lever == NULL) return false;
-    printf("%d;%d\n", lever->x, lever->y);
+    return lever;
+}
+
+bool openDoor(Map* map, Frame* lever, Frame* door, Coord* player){
+    Coord lever_coord;
+    lever_coord.x = lever->x;
+    lever_coord.y = lever->y;
+
+    // Move the player to the lever
+    moveTo(map, player, lever_coord, false);
+
+    // Open the door
+    deleteFrameInMap(map, door, false);
+    size_t i = 0;
+    while (map->opened_doors[i] != NULL) i++;
+    map->opened_doors[i] = door;
+    display(map, false);
+
     return true;
+}
+
+bool solve(Map* map, Stack* interactions){
+    // Start and end point
+    Coord end_point, player;
+    player.x = START_X; player.y = START_Y;
+    end_point.x = END_X; end_point.y = END_Y;
+
+    bool res = true;    // true means resolvable, false means unresolvable
+    
+    while(!pathfinding(map, player, end_point, false) && res){
+        Frame** blocking_doors = searchExits(map, player);
+        size_t i = 0;
+        bool can_exit = false;
+        while(blocking_doors[i] != NULL && !can_exit){
+            printFrame(blocking_doors[i]);
+            Frame* lever = getDoorLever(map, blocking_doors[i], player);
+            if(lever != NULL){
+                can_exit = openDoor(map, lever, blocking_doors[i], &player);
+                if(can_exit) putFrame(interactions, lever);
+            }
+            i++;
+        }
+        if(!can_exit) res = false;
+    }
+
+    return res;
 }

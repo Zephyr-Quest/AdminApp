@@ -21,6 +21,13 @@
 #define SIZE_MAP 15 // Size of map
 #define MAX_OBJECT ((SIZE_MAP * SIZE_MAP) - 1)
 
+// Caracters
+#define BUTTON 'u'
+#define DOOR 'l'
+#define WALL '&'
+#define HOLE '@'
+#define TORCH '*'
+
 // Start point
 #define START_X 0
 #define START_Y 7
@@ -53,6 +60,7 @@ typedef struct Map
     char author[MAX_NAME_SIZE];     // Author of the map
     struct Frame* items[MAX_OBJECT]; // Object in the map
     int nb_items;                   // Number of objects in the map
+    struct Frame* opened_doors[NB_DOOR_MAX]; // All of opened doors
 } Map;
 
 typedef struct WallPosition
@@ -118,13 +126,19 @@ int addButtonInMap(Map* map, Frame* door, Frame* button);
 int trumpWall(Map* map, int dir);
 
 // Remove an item in the map using its coordinates. Using ID for checking object, let id = 0 for no checking
-int deleteFrameInMap(Map* map, int posX, int posY, int id_object, bool verbose);
+int deleteFrameInMap(Map* map, Frame* frame, bool verbose);
 
 // Check if the coordinates [x][y] are in the map
 bool checkCoordinates (int posx, int posy); 
 
 // Place door(s) on the map
 int placeDoor(Map* map);
+
+// Compare two frames
+bool compareFrame(Frame* frame1, Frame* frame2);
+
+// Print the given frame
+void printFrame(Frame*);
 
 /*
  * HTTP
@@ -155,7 +169,7 @@ Map* getMapByName(const char* name);
 bool uploadNewMap(Map* map);
 
 /*
- * FILES
+ * STACKS
  */
 
 typedef struct Element Element;
@@ -168,14 +182,20 @@ struct Stack {
     Element *first;
 };
 
-// Init a file
+// Init a stack
 Stack initStack();
 
-// Put a new value to the file
-void put(Stack *file, Coord data);
+// Put a new value to the stack
+void put(Stack *stack, Coord data);
 
-// Pull the first value of the file (remove it)
-Coord pull(Stack *file);
+// Pull the first value of the stack (remove it)
+Coord pull(Stack *stack);
+
+// Put a new value to the stack
+void putFrame(Stack *stack, Frame* data);
+
+// Pull the first value of the stack (remove it)
+Frame* pullFrame(Stack *stack, Map* map);
 
 /*
  * SOLVER
@@ -199,6 +219,9 @@ void generateMapArray(char destination[SIZE_MAP][SIZE_MAP], Map* source);
 // Generate a 2D array which store a Map
 void printMapArray(char map[SIZE_MAP][SIZE_MAP], bool show_zeros);
 
+// Print given coordinates
+void printCoord(Coord);
+
 // Check if a char is an obactle
 bool isObstacle(char);
 
@@ -214,5 +237,14 @@ void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MA
 // Search all of blocking door
 Frame** searchExits(Map* map, Coord player);
 
+// Search lever which open the door
+Frame* getDoorLever(Map* map, Frame* door, Coord player);
+
 // Try to open a door, return false if the lever can't be reached
-bool openDoor(Map* map, Frame* door, Coord* player);
+bool openDoor(Map* map, Frame* lever, Frame* door, Coord* player);
+
+// Move the player to a specific location
+bool moveTo(Map* map, Coord* player, Coord destination, bool verbose);
+
+// Try to solve 
+bool solve(Map* map, Stack* interactions);

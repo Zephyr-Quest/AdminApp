@@ -23,6 +23,7 @@ Map* createMap(char name[], char author[])
         strcpy(tmp->author, author);
         tmp->nb_items = 0;
         tmp->items[0] = NULL;
+        tmp->opened_doors[0] = NULL;
     } else free(tmp);
     return tmp;
 }
@@ -64,6 +65,7 @@ void appendFrameAtEnd(Frame* tab[],Frame* add)
 
 void addFrameInMap(Map* map, Frame* frame)
 {
+    if(compareFrame(frame, locateFrame(map, frame->x, frame->y, false))) return;
     map->items[map->nb_items] = frame;
     map->nb_items++;
 }
@@ -78,7 +80,7 @@ Frame* locateFrame(Map* map, int posx, int posy, bool verbose)
 {
     if (map == NULL || posx < 0 || posx > SIZE_MAP-1 || posy < 0 || posy > SIZE_MAP-1 )
     {
-        if (verbose == true) puts("La frame n'a pas été retrouvé : Carte ou coordoonées incorrecte");    // TODO: Supprimer ce message
+        if (verbose) puts("La frame n'a pas été retrouvé : Carte ou coordoonées incorrecte");    // TODO: Supprimer ce message
         return NULL;
     }
     for (int i = 0; i < map->nb_items; i++)
@@ -86,42 +88,41 @@ Frame* locateFrame(Map* map, int posx, int posy, bool verbose)
         Frame* tmp = getFrameAtRank(map->items, map->nb_items, i);
         if (tmp == NULL) 
         {
-            if (verbose == true) puts("La frame n'a pas été retrouvé : Les coordoonées ne sont pas référencés"); // TODO: Supprimer ce message
+            if (verbose) puts("La frame n'a pas été retrouvé : Les coordoonées ne sont pas référencés"); // TODO: Supprimer ce message
             return NULL;
         }
         if ((tmp->x == posx) && (tmp->y == posy)) return tmp;
     }
-    if (verbose == true) puts("La frame n'a pas été retrouvé : Les coordoonées ne sont pas référencés"); // TODO: Supprimer ce message
+    if (verbose) puts("La frame n'a pas été retrouvé : Les coordoonées ne sont pas référencés"); // TODO: Supprimer ce message
     return NULL;
 }
 
-int deleteFrameInMap(Map* map, int posx, int posy, int id_object, bool verbose)
-{
-    if (map == NULL)
-    {
-        puts("La frame n'a pas pu être supprimé : Carte incorrecte");   // TODO: Supprimer ce message
+int deleteFrameInMap(Map* map, Frame* frame, bool verbose) {
+    if (map == NULL) {
+        if(verbose) puts("La frame n'a pas pu être supprimé : Carte incorrecte");   // TODO: Supprimer ce message
         return EXIT_FAILURE;
     }
 
-    Frame* tmp = locateFrame(map, posx, posy, true);
-    if (tmp == NULL)
-    {
-        if (verbose == true) puts("La frame n'a pas pu être supprimé : Frame introuvable");  // TODO: Supprimer ce message
+    if (frame == NULL) {
+        if (verbose) puts("La frame n'a pas pu être supprimé : Frame introuvable");  // TODO: Supprimer ce message
         return EXIT_FAILURE;
-    } else 
-    {
-        if (id_object == 0 || id_object == tmp->id)
-        {
-            free(tmp);
-            map->nb_items--;
-            return EXIT_SUCCESS; 
-        } else {
-            if (verbose == true) puts("La frame n'a pas pu être supprimé : Vérification de l'ID incorrect"); // TODO: Supprimer ce message
-            return EXIT_FAILURE;
+    } else {
+        int frame_idx = map->nb_items;
+        for (int i = 0; i < map->nb_items; i++) {
+            if (compareFrame(frame, map->items[i])) {
+                free(frame);
+                frame_idx = i;
+            }
+            if(i >= frame_idx){
+                if(i == map->nb_items - 1) {
+                    map->items[i] = NULL;
+                    free(map->items[i]);
+                } else map->items[i] = map->items[i+1];
+            }
         }
-        return EXIT_FAILURE;
+        map->nb_items--;
     }
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
 }
 
 bool checkCoordinates (int posx, int posy) {
@@ -158,11 +159,8 @@ Frame* createFrameOnWall(Map* map, int posX, int posY, int id_object)
             return NULL;
         } else 
         {
-            deleteFrameInMap(map,posX,posY,3, true);
-            tmp->x = posX;
-            tmp->y = posY;
-            tmp->id = id_object;
-            tmp->usages[0] = NULL;
+            wall->id = id_object;
+            wall->usages[0] = NULL;
             addFrameInMap(map, tmp);
         }
     }
@@ -241,7 +239,7 @@ int trumpWall(Map* map, int dir) //FIXME: Corriger les problèmes de fonctions i
     // 1 -> vertical
     // 2 -> horizontal
     printf("\n");
-    if (dir == 1)
+    if (dir == 1) // vertical
     {
         int x = nbRand(2,13);
         printf("x -> %d\n", x); // TODO: Retirer cette sécurité
@@ -257,7 +255,7 @@ int trumpWall(Map* map, int dir) //FIXME: Corriger les problèmes de fonctions i
                 if (tmp != NULL) addFrameInMap(map, tmp);
         }
     }
-    else if (dir == 2)
+    else if (dir == 2)  // horizontal
     { 
         int y = nbRand(1,14);
         printf("y -> %d\n", y); // TODO: Retirer cette sécurité
@@ -280,15 +278,15 @@ int trumpWall(Map* map, int dir) //FIXME: Corriger les problèmes de fonctions i
 int placeDoor(Map* map)
 {
     int x = 0;
-    int y = 7;
-    int countWall = 0;
+    int y = 6;
+   // int countWall = 0;
 
     int coord[4];
     bool creation = true;
     bool posed = false;
     
     Frame* item;
-    Walls wall;
+    //Walls wall;
 
     /*for (size_t x = 0; x < SIZE_MAP; x++)
     {
@@ -307,52 +305,60 @@ int placeDoor(Map* map)
     
     while(creation == true)
     {
-        do
+        do  // find x position
         {
-            item = locateFrame(map, x, y + 1, true);
+            item = locateFrame(map, x, y + 1, false);           
             x--;
-            printf("%d",x);
+                            /*if (item->id == 2)
+                            {
+                                item = locateFrame(map, x + 1, y + 1, true);
+                            }*/
         } while (item == NULL && x >= 0);
         x++;
+        coord[0] = x;
+
         do
         {
             item = locateFrame(map, x + 1, y, false);
             y--;
         }while (item == NULL && y >= 0);
         y++;
-        coord[0] = x;
         coord[1] = y;
 
         do
         {
-            item = locateFrame(map, x, y + 1, false);
+            item = locateFrame(map, x, y + 1, false);           
             x++;
         } while (item == NULL && x < 15);
         x--;
+        coord[2] = x;
+        
         do 
         {
-            item = locateFrame(map, x - 1, y, false);
             y++;
-            if(x + 1 ==14 && y == 7) creation = false;
+            item = locateFrame(map, x + 1, y, false);
+            if(x == 14 && y == 6) printf("C'EST LA FIN");
         } while(item == NULL && y < 15);
         y--;
-        coord[2] = x;
         coord[3] = y;
 
         printf("\n%d; %d; %d; %d\n", coord[0], coord[1], coord[2], coord[3]);
         if (creation == true)
         {
             posed = false;
+            int pos = 0;
             while(posed == false)
             {  
-                puts("ici");
-                int nb = 2; //nbRand(0,4);
+                int nb = nbRand(0,4);
+                printf("nb rand = %d\n", nb);
                 switch (nb)
                 {
-                case 1:
+                case 1: // left wall
                     if(coord[0] != 0)
                     {
-                        createFrameOnWall(map, coord[0], coord[3] - coord[1], 2);
+                        pos = nbRand(coord[1], coord[3]);
+
+                        createFrameOnWall(map, coord[0], pos, 2);
                         posed = true;
                         x = coord[0];
                         y = coord[3];
@@ -367,26 +373,33 @@ int placeDoor(Map* map)
                     }
                     break;
                 
-                case 2:
+                case 2: // top wall
                     if(coord[1] != 0)
                     {
-                        createFrameOnWall(map, coord[2] - coord[0], coord[1], 2);
+                        pos = nbRand(coord[0], coord[2]);
+
+                        createFrameOnWall(map, coord[1], pos, 2);
                         posed = true;
                     }
                     break;
 
-                case 3:
+                case 3: // right wall
                     if(coord[2] != 14)
                     {
-                        createFrameOnWall(map, coord[2], coord[3] - coord[1], 2);
+                        pos = nbRand(coord[1], coord[3]);
+                        printf("%d / %d : %d\n", coord[1], coord[3], pos);
+                        
+                        createFrameOnWall(map, coord[2], pos, 2);
                         posed = true;
                     }
                     break;
 
-                case 4:
+                case 4: // bottom wall
                     if(coord[3] != 14)
                     {
-                        createFrameOnWall(map, coord[2] - coord[0], coord[3], 2);
+                        pos = nbRand(coord[0], coord[2]);
+
+                        createFrameOnWall(map, coord[3], pos, 2);
                         posed = true;
                     }
                     break;
@@ -394,14 +407,10 @@ int placeDoor(Map* map)
                 default:
                     break;
                 }
-                posed = true;
                 creation = false;
             }    
         }
-    }
-
-    //createFrameOnWall(map, wall->x, wall->y, 2);
-    
+    }    
     return EXIT_SUCCESS;
 }
 
@@ -415,4 +424,15 @@ Frame** getAllItemInMap(Map* map, int id_object) {
         }
     }
     return items;
+}
+
+bool compareFrame(Frame* frame1, Frame* frame2) 
+{
+    return !!!(frame1 == NULL || frame2==NULL || frame1->id != frame2->id ||
+    frame1->x != frame2->x ||frame1->y != frame2->y);
+}
+
+void printFrame(Frame* frame)
+{
+    printf("id: %d, x: %d, y: %d\n", frame->id, frame->x, frame->y);
 }

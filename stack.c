@@ -37,3 +37,14 @@ Coord pull(Stack *file) {
     }
     return to_pull;
 }
+
+void putFrame(Stack *file, Frame* data) {
+    Coord tmp;
+    tmp.x = data->x;
+    tmp.y = data->y;
+    put(file, tmp);
+}
+
+Frame* pullFrame(Stack *stack, Map* map){
+    return locateFrameByCoord(map,pull(stack), false);
+}
