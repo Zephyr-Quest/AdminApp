@@ -40,7 +40,7 @@ bool moveTo(Map* base_map, Coord* player, Coord destination, bool verbose){
     while(isInMap(nears_endpoint[i]) && i < 4){
         Coord current_near = nears_endpoint[i];
         char current_near_value = distance_map[current_near.y][current_near.x];
-        if(current_near_value != 0 && !isObstacle(current_near_value)){
+        if(!canBeHover(current_near_value) && !isObstacle(current_near_value)){
             // A path exists
             res = true;
             player->x = current_near.x;
@@ -94,15 +94,18 @@ void generateMapArray(char destination[SIZE_MAP][SIZE_MAP], Map* source){
             if(current_frame != NULL){
                 switch (current_frame->id) {
                     // button
-                    case 1 : destination[y][x] = 'u'; break;
+                    case 1 : destination[y][x] = BUTTON; break;
                     // door
-                    case 2: destination[y][x] = 'l'; break;
+                    case 2:
+                        if (current_frame->state) destination[y][x] = 0;
+                        else destination[y][x] = DOOR;
+                        break;
                     // wall
-                    case 3: destination[y][x] = '&'; break;
+                    case 3: destination[y][x] = WALL; break;
                     // hole
-                    case 4: destination[y][x] = '@'; break;
+                    case 4: destination[y][x] = HOLE; break;
                     // torch
-                    case 5: destination[y][x] = '*'; break;
+                    case 5: destination[y][x] = TORCH; break;
                 }
             } else destination[y][x] = 0;
         }
@@ -130,11 +133,11 @@ void printCoord(Coord to_print){
 }
 
 bool isObstacle(char to_check){
-    return to_check == 'l' || to_check == '&' || to_check == '@' || to_check == 'u';
+    return to_check == DOOR || to_check == WALL || to_check == HOLE || to_check == BUTTON;
 }
 
 bool canBeHover(char to_check){
-    return to_check == '*' || to_check == 0;
+    return to_check == TORCH || to_check == 0;
 }
 
 bool isCoordsEquals(Coord c1, Coord c2){
@@ -150,14 +153,24 @@ void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MA
 }
 
 Frame** searchExits(Map* map, Coord player){
+    // Get all of closed doors
     Frame** blocking_doors = (Frame**) malloc(NB_DOOR_MAX * sizeof(Frame*));
-    Frame** doors = getAllItemInMap(map, 2);
+    Frame** closed_doors = (Frame**) malloc(NB_DOOR_MAX * sizeof(Frame*));
+    size_t j = 0;
+    for (int i = 0; i < map->nb_items; i++){
+        if (map->items[i]->id == 2 && !map->items[i]->state) {
+            closed_doors[j] = map->items[i];
+            j++;
+        }
+    }
+
+    // Choose which doors are blocking doors
     size_t i = 0, k = 0;
-    while(doors[i] != NULL){
-        Coord door_coord; door_coord.x = doors[i]->x; door_coord.y = doors[i]->y;
+    while(closed_doors[i] != NULL){
+        Coord door_coord; door_coord.x = closed_doors[i]->x; door_coord.y = closed_doors[i]->y;
         Coord* nears_doorpoints = getNearPoints(door_coord);
 
-        size_t j = 0;
+        j = 0;
         bool is_blocking = false;
         while(isInMap(nears_doorpoints[j]) && j < 4){
             Coord current_near = nears_doorpoints[j];
@@ -168,7 +181,7 @@ Frame** searchExits(Map* map, Coord player){
         }
 
         if(is_blocking) {
-            blocking_doors[k] = doors[i];
+            blocking_doors[k] = closed_doors[i];
             k++;
         }
         i++;
@@ -177,37 +190,43 @@ Frame** searchExits(Map* map, Coord player){
     return blocking_doors;
 }
 
-Frame* getDoorLever(Map* map, Frame* door, Coord player){
+Frame* getDoorLever(Map* map, Frame* door, Coord player, Stack* actions){
     size_t i = 0;
     Frame* lever = NULL;
     Coord lever_coord;
     while (door->usages[i] != NULL && lever == NULL) {
         lever = door->usages[i];
         lever_coord.x = lever->x; lever_coord.y = lever->y;
-        if(!pathfinding(map, player, lever_coord, false)) lever = NULL;
+        if(!pathfinding(map, player, lever_coord, false) || stackContainsFrame(actions, lever)) lever = NULL;
+        i++;
     }
     return lever;
 }
 
-bool openDoor(Map* map, Frame* lever, Frame* door, Coord* player){
+bool useLever(Map* map, Frame* lever, Coord* player, bool verbose){
     Coord lever_coord;
     lever_coord.x = lever->x;
     lever_coord.y = lever->y;
 
     // Move the player to the lever
-    moveTo(map, player, lever_coord, false);
+    if(!moveTo(map, player, lever_coord, false)) return false;
 
-    // Open the door
-    deleteFrameInMap(map, door, false);
-    size_t i = 0;
-    while (map->opened_doors[i] != NULL) i++;
-    map->opened_doors[i] = door;
-    display(map, false);
+    // Open or close doors
+    printFrame(lever);
+    for(size_t i = 0; i < _countofFrames(lever->usages); i++){
+        Frame* current_door = lever->usages[i];
+        current_door = locateFrame(map, current_door->x, current_door->y, false);
+        printf("%ld\n", i);
+        printFrame(current_door);
+        if(current_door != NULL)
+            current_door->state = !current_door->state;
+    }
+    if(verbose) display(map, false);
 
     return true;
 }
 
-bool solve(Map* map, Stack* interactions){
+bool solve(Map* map, Stack* interactions, bool verbose){
     // Start and end point
     Coord end_point, player;
     player.x = START_X; player.y = START_Y;
@@ -221,10 +240,10 @@ bool solve(Map* map, Stack* interactions){
         size_t i = 0;
         bool can_exit = false;
         while(blocking_doors[i] != NULL && !can_exit){
-            printFrame(blocking_doors[i]);
-            Frame* lever = getDoorLever(map, blocking_doors[i], player);
+            Frame* lever = getDoorLever(map, blocking_doors[i], player, interactions);
+            if(lever != NULL) lever = locateFrame(map, lever->x, lever->y, false);
             if(lever != NULL){
-                can_exit = openDoor(map, lever, blocking_doors[i], &player);
+                can_exit = useLever(map, lever, &player, verbose);
                 if(can_exit) {
                     if(nb_actions >= MAX_ACTIONS) res = false;
                     else {

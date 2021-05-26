@@ -1,15 +1,16 @@
 #pragma once
 
+#include <ncurses.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
 #include <string.h>
-#define _countof(array) (sizeof(&array) / sizeof(array[0]))
+#define _countofFrames(array) (sizeof(array) / sizeof(struct Frame*))
 
 // HTTP libs
 #include <curl/curl.h>
-#include<json-c/json.h>
+#include <json-c/json.h>
 
 #define NB_HOLE_MAX 5   // Maximum number of holes
 #define NB_BUTTON_MAX 5 // Maximum number of button 
@@ -52,6 +53,7 @@ typedef struct Frame
     int x;  // x position  
     int y;  // y position
     struct Frame* usages[MAX_INTERACTION]; // If it is a sensor, list the linked actuators
+    bool state; // If the door is open (false if it's not a door)
 } Frame;
 
 // Map structure
@@ -61,24 +63,7 @@ typedef struct Map
     char author[MAX_NAME_SIZE];     // Author of the map
     struct Frame* items[MAX_OBJECT]; // Object in the map
     int nb_items;                   // Number of objects in the map
-    struct Frame* opened_doors[NB_DOOR_MAX]; // All of opened doors
 } Map;
-
-typedef struct WallPosition
-{
-    int x;
-    int y;
-} WallPosition;
-
-// Wall Position structure
-typedef struct Walls
-{
-    int nbVert;
-    int nbHori;
-    struct WallPosition count[4];
-} Walls;
-
-
 
 Frame** getAllItemInMap(Map* map, int id_object);
 
@@ -94,7 +79,7 @@ int nbRand(int nbMin, int nbMax);
 Frame * createFrame(int posX, int posY, int id_object);
 
 // Create an object on a wall. Set posX and posY to 0 to randomize position
-Frame* createFrameOnWall(Map* map, int posX, int posY, int id_object);
+Frame* createFrameOnWall(Map* map, int posX, int posY, int id_object, bool verbose);
 
 // D4rk V4d0r is creating a map : xX_De4th-5t4r5_Xx
 Map* createMap(char name[], char author[]);
@@ -103,7 +88,7 @@ Map* createMap(char name[], char author[]);
 int addElementInButton(Frame* button, Frame* door);
 
 // Add a frame at the end of an array
-void appendFrameAtEnd(Frame* tab[],Frame* add);
+void appendFrameAtEnd(Frame* tab[],Frame* add, int max);
 
 // Add a frame in the map
 void addFrameInMap(Map* map, Frame* frame);
@@ -134,6 +119,9 @@ bool checkCoordinates (int posx, int posy);
 
 // Place door(s) on the map
 int placeDoor(Map* map);
+
+// Check if there is a door on the wall
+bool passePartout(Map* map, int wallPos, int start, int end, int dir);
 
 // Compare two frames
 bool compareFrame(Frame* frame1, Frame* frame2);
@@ -198,6 +186,12 @@ void putFrame(Stack *stack, Frame* data);
 // Pull the first value of the stack (remove it)
 Frame* pullFrame(Stack *stack, Map* map);
 
+// Check if a stack contains a coord
+bool stackContains(Stack *stack, Coord data);
+
+// Check if a stack contains a frame
+bool stackContainsFrame(Stack* stack, Frame* frame);
+
 /*
  * SOLVER
  */
@@ -239,13 +233,20 @@ void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MA
 Frame** searchExits(Map* map, Coord player);
 
 // Search lever which open the door
-Frame* getDoorLever(Map* map, Frame* door, Coord player);
+Frame* getDoorLever(Map* map, Frame* door, Coord player, Stack* actions);
 
 // Try to open a door, return false if the lever can't be reached
-bool openDoor(Map* map, Frame* lever, Frame* door, Coord* player);
+bool useLever(Map* map, Frame* lever, Coord* player, bool verbose);
 
 // Move the player to a specific location
 bool moveTo(Map* map, Coord* player, Coord destination, bool verbose);
 
 // Try to solve 
-bool solve(Map* map, Stack* interactions);
+bool solve(Map* map, Stack* interactions, bool verbose);
+
+
+// CONIO
+// 
+int _getch(void);
+//
+int _getche(void);

@@ -154,7 +154,7 @@ Map* * getAllMaps(size_t* nb_maps){
                     json_object_get_int(usage_y),
                     json_object_get_int(usage_id)
                 );
-                new_frame->usages[k] = new_usage;
+                appendFrameAtEnd(new_frame->usages, new_usage, MAX_INTERACTION);
             }
 
             addFrameInMap(new_map, new_frame);
@@ -215,13 +215,14 @@ Map* getMapByName(const char* map_name){
                 json_object_get_int(usage_y),
                 json_object_get_int(usage_id)
             );
-            new_frame->usages[k] = new_usage;
+            appendFrameAtEnd(new_frame->usages, new_usage, MAX_INTERACTION);
         }
 
         addFrameInMap(new_map, new_frame);
     }
     
     return new_map;
+    // return NULL;
 }
 
 bool uploadNewMap(Map* map){
@@ -237,7 +238,7 @@ bool uploadNewMap(Map* map){
         json_object_object_add(current_item, "y", json_object_new_int(current_frame->y));
         
         usages = json_object_new_array();
-        for (size_t j = 0; j < _countof(current_frame->usages); j++){
+        for (size_t j = 0; j < _countofFrames(current_frame->usages); j++){
             Frame* current_usage = current_frame->usages[j];
 	        current_json_usage = json_object_new_object();
             json_object_object_add(current_json_usage, "id", json_object_new_int(current_usage->id));
