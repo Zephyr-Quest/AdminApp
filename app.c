@@ -1,10 +1,10 @@
 #include "header.h"
 
-#define SOLVER
+// #define SOLVER
 // #define GENERATOR
 
 int main() {
-    srand(time(NULL));
+    srand(time(NULL));    
 
     // Get all saved maps
     // printf("All maps :\n");
