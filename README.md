@@ -7,7 +7,7 @@ An admin app, made in C, to generate random map and check if a map can be finish
 To build and test the app **on Linux** :
 
 ```
-cd build && make
+make
 ```
 
 ## Contributors

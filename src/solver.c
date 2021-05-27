@@ -140,7 +140,6 @@ bool useLever(Map* map, Frame* lever, Coord* player, bool verbose){
     while (current != NULL) {
         Frame* current_door = current->data;
         current_door = locateFrame(map, current_door->x, current_door->y, false);
-        printFrame(current_door);
         if(current_door != NULL)
             current_door->state = !current_door->state;
         current = current->next;

@@ -1,7 +1,7 @@
 #include "../headers/header.h"
 
 // #define SOLVER
-// #define GENERATOR
+#define GENERATOR
 
 int main() {
     srand(time(NULL));    
@@ -29,8 +29,6 @@ int main() {
             printf("%s by %s is saved in the memory\n", to_solve->name, to_solve->author);
             printf("\n");
             display(to_solve, false);
-            Frame* lever = locateFrame(to_solve, 1, 0, true);
-            printFrame(lever->usages[1]);
             // char choice = 'y';
             char choice;
             printf("Do you want to solve it ? (y/n) ");
@@ -54,7 +52,6 @@ int main() {
         placeDoor(map2);
         display(map2, false);
     #endif
-
     
     return 0;
 }
