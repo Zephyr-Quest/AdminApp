@@ -117,8 +117,6 @@ int placeDoor(Map* map)
     Frame* item;
     Frame* item2;
 
-
-
     int i = 0;
     
     while(creation == true && i < 100)
@@ -205,14 +203,6 @@ int placeDoor(Map* map)
                         
                         createFrameOnWall(map, coord[2], pos, 2, true);
                         posed = true;
-
-
-
-
-
-
-
-
                         x = coord[2];
                         y = pos;
                         x++;                        
@@ -228,12 +218,6 @@ int placeDoor(Map* map)
 
                         createFrameOnWall(map, pos, coord[3], 2, true);
                         posed = true;
-
-
-
-
-
-
 
                         x = pos;
                         y = coord[3];
@@ -277,4 +261,5 @@ bool passePartout(Map* map, int wallPos, int start, int end, int dir)
 bool passeMuraille(Map* map, Frame* door, Frame* lever)
 {
 
+    return false;
 }
