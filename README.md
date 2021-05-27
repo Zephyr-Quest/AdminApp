@@ -4,10 +4,17 @@ An admin app, made in C, to generate random map and check if a map can be finish
 
 ## Build
 
+Before compile the application, you must install dependencies :
+
+```
+libjson-c-dev
+libcurl4-openssl-dev
+```
+
 To build and test the app **on Linux** :
 
 ```
-make
+mkdir build && make
 ```
 
 ## Contributors

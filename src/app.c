@@ -1,10 +1,10 @@
 #include "../headers/header.h"
 
-// #define SOLVER
+#define SOLVER
 // #define GENERATOR
 
 int main() {
-    srand(time(NULL));    
+    srand(time(NULL));
 
     // Get all saved maps
     // printf("All maps :\n");
@@ -21,7 +21,7 @@ int main() {
 
     // Get the map named 'test'
     #ifdef SOLVER
-        const char* map_name = "map2";
+        const char* map_name = "niveau_3";
         printf("The map named '%s' :\n", map_name);
         Map* to_solve = getMapByName(map_name);
         if (to_solve == NULL) printf("The map named '%s' doesn't exist...\n", map_name);
@@ -46,12 +46,12 @@ int main() {
 
     #ifdef GENERATOR
         Map* map2 = generateRandomMap(2);
-    
+
         //addFrameInMap(map2, createFrame(0, 6, 2));
         display(map2, false);
         placeDoor(map2);
         display(map2, false);
     #endif
-    
+
     return 0;
 }

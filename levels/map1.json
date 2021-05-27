@@ -2,16 +2,22 @@
     "name": "map1",
     "author": "admin",
     "items": [
-        {"id": 2, "x": 4, "y": 7, "usages": []},
-        {"id": 2, "x": 8, "y": 3, "usages": []},
-        {"id": 2, "x": 12, "y": 7, "usages": []},
+        {"id": 2, "x": 4, "y": 7, "usages": [
+            {"id": 1, "x": 2, "y": 14, "usages": []}
+        ]},
+        {"id": 2, "x": 8, "y": 3, "usages": [
+            {"id": 1, "x": 2, "y": 0, "usages": []}
+        ]},
+        {"id": 2, "x": 12, "y": 7, "usages": [
+            {"id": 2, "x": 8, "y": 0, "usages": []}
+        ]},
         {"id": 1, "x": 2, "y": 0, "usages": [
             {"id": 2, "x": 8, "y": 3, "usages": []}
         ]},
-        {"id": 1, "x": 2, "y": 0, "usages": [
+        {"id": 1, "x": 2, "y": 14, "usages": [
             {"id": 2, "x": 4, "y": 7, "usages": []}
         ]},
-        {"id": 1, "x": 2, "y": 0, "usages": [
+        {"id": 1, "x": 8, "y": 0, "usages": [
             {"id": 2, "x": 12, "y": 7, "usages": []}
         ]},
         {"id": 4, "x": 2, "y": 11, "usages": []},
@@ -30,7 +36,6 @@
         {"id": 3, "x": 4, "y": 4, "usages": []},
         {"id": 3, "x": 4, "y": 5, "usages": []},
         {"id": 3, "x": 4, "y": 6, "usages": []},
-        {"id": 3, "x": 4, "y": 7, "usages": []},
         {"id": 3, "x": 4, "y": 8, "usages": []},
         {"id": 3, "x": 4, "y": 9, "usages": []},
         {"id": 3, "x": 4, "y": 10, "usages": []},

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ncurses.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -13,7 +12,7 @@
 #include <json-c/json.h>
 
 #define NB_HOLE_MAX 5   // Maximum number of holes
-#define NB_BUTTON_MAX 5 // Maximum number of button 
+#define NB_BUTTON_MAX 5 // Maximum number of button
 #define NB_LEVER_MAX 5  // Maximum number of lever
 #define NB_WALL_MAX 20  // Maximum number of wall
 #define NB_DOOR_MAX 15  // Maximum number of wall
@@ -50,7 +49,7 @@ struct Coord {
 typedef struct Frame
 {
     int id; // Object identifier : Recognises the type of the object
-    int x;  // x position  
+    int x;  // x position
     int y;  // y position
     struct List* usages; // If it is a sensor, list the linked actuators
     bool state; // If the door is open (false if it's not a door)
@@ -154,7 +153,7 @@ void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MA
  * GENERATOR
  */
 
-// Return random number, between ]min ; max] 
+// Return random number, between ]min ; max]
 int nbRand(int nbMin, int nbMax);
 
 // Create an object on a wall. Set posX and posY to 0 to randomize position
@@ -169,7 +168,7 @@ Map* generateRandomMap(int nb_item);
 // Add a door and a button in a map
 int addButtonInMap(Map* map, Frame* door, Frame* button);
 
-// Create a straight wall 
+// Create a straight wall
 int trumpWall(Map* map, int dir);
 
 // Place door(s) on the map
@@ -266,5 +265,5 @@ bool useLever(Map* map, Frame* lever, Coord* player, bool verbose);
 // Move the player to a specific location
 bool moveTo(Map* map, Coord* player, Coord destination, bool verbose);
 
-// Try to solve 
+// Try to solve
 bool solve(Map* map, Stack* interactions, bool verbose);
