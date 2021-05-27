@@ -86,8 +86,10 @@ Map* createMap(char name[], char author[]) {
 Frame* createFrame(int posX, int posY, int id_object) {
     Frame* tmp = malloc(sizeof(Frame));
     if (tmp != NULL) {
-        tmp->x = posX;
-        tmp->y = posY;
+        tmp->pos.x = posX;
+        tmp->pos.y = posY;
+        tmp->x = posX;  // depreciated
+        tmp->y = posY;  // depreciated
         tmp->id = id_object;
         tmp->usages = initList();
         tmp->state = false;
@@ -141,7 +143,7 @@ void display(Map* map, bool show_zeros) {
 
 bool compareFrame(Frame* frame1, Frame* frame2) {
     return !(frame1 == NULL || frame2==NULL || frame1->id != frame2->id ||
-    frame1->x != frame2->x ||frame1->y != frame2->y);
+    (frame1->x != frame2->x ||frame1->y != frame2->y) || (frame1->pos.x != frame2->pos.x || frame1->pos.y != frame2->pos.y));
 }
 
 void printFrame(Frame* frame) {
