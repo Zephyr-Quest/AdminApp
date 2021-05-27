@@ -50,6 +50,7 @@ struct Coord {
 typedef struct Frame
 {
     int id; // Object identifier : Recognises the type of the object
+    Coord pos;
     int x;  // x position  
     int y;  // y position
     struct List* usages; // If it is a sensor, list the linked actuators
