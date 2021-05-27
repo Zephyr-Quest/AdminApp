@@ -1,4 +1,4 @@
-#include "header.h"
+#include "../headers/header.h"
 
 List* initList(){
     List *list = malloc(sizeof(*list));

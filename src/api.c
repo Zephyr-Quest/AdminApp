@@ -1,4 +1,4 @@
-#include "header.h"
+#include "../headers/header.h"
 
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
@@ -154,7 +154,7 @@ Map* * getAllMaps(size_t* nb_maps){
                     json_object_get_int(usage_y),
                     json_object_get_int(usage_id)
                 );
-                appendFrameAtEnd(new_frame->usages, new_usage, MAX_INTERACTION);
+                appendAtList(new_frame->usages, new_usage);
             }
 
             addFrameInMap(new_map, new_frame);
@@ -215,7 +215,7 @@ Map* getMapByName(const char* map_name){
                 json_object_get_int(usage_y),
                 json_object_get_int(usage_id)
             );
-            appendFrameAtEnd(new_frame->usages, new_usage, MAX_INTERACTION);
+            appendAtList(new_frame->usages, new_usage);
         }
 
         addFrameInMap(new_map, new_frame);
@@ -230,27 +230,30 @@ bool uploadNewMap(Map* map){
 	struct json_object *items, *current_item, *usages, *current_json_usage;
 
     items = json_object_new_array();
-    for (int i = 0; i < map->nb_items; i++) {
-        Frame* current_frame = map->items[i];
+    ListElement* i = map->items->first;
+    while (i != NULL) {
+        Frame* current_frame = i->data;
 	    current_item = json_object_new_object();
         json_object_object_add(current_item, "id", json_object_new_int(current_frame->id));
         json_object_object_add(current_item, "x", json_object_new_int(current_frame->x));
         json_object_object_add(current_item, "y", json_object_new_int(current_frame->y));
         
         usages = json_object_new_array();
-        for (size_t j = 0; j < _countofFrames(current_frame->usages); j++){
-            Frame* current_usage = current_frame->usages[j];
+        ListElement* j = current_frame->usages ->first;
+        while (j != NULL) {
+            Frame* current_usage = j->data;
 	        current_json_usage = json_object_new_object();
             json_object_object_add(current_json_usage, "id", json_object_new_int(current_usage->id));
             json_object_object_add(current_json_usage, "x", json_object_new_int(current_usage->x));
             json_object_object_add(current_json_usage, "y", json_object_new_int(current_usage->y));
             json_object_object_add(current_json_usage, "usages", json_object_new_array());
             json_object_array_add(usages, current_json_usage);
-            j++;
+            j = j->next;
         }
         json_object_object_add(current_item, "usages", usages);
 
         json_object_array_add(items, current_item);
+        i = i->next;
     }
     
     const char* map_str = json_object_to_json_string_ext(items, JSON_C_TO_STRING_PLAIN);

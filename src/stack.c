@@ -1,4 +1,4 @@
-#include "header.h"
+#include "../headers/header.h"
 
 Stack initStack(){
     Stack new_stack;

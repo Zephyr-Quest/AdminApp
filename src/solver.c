@@ -1,4 +1,4 @@
-#include "header.h"
+#include "../headers/header.h"
 
 bool moveTo(Map* base_map, Coord* player, Coord destination, bool verbose){
     // Search and print distances
@@ -79,98 +79,24 @@ Coord* getNearPoints(Coord center){
     return res;
 }
 
-bool isInMap(Coord point){
-    return point.x < SIZE_MAP && point.y < SIZE_MAP;
-}
-
-Frame* locateFrameByCoord(Map* map, Coord coord, bool verbose){
-    return locateFrame(map, coord.x, coord.y, verbose);
-}
-
-void generateMapArray(char destination[SIZE_MAP][SIZE_MAP], Map* source){
-    for(size_t y = 0; y < SIZE_MAP; y++){
-        for(size_t x = 0; x < SIZE_MAP; x++){
-            Frame* current_frame = locateFrame(source, x, y, false);
-            if(current_frame != NULL){
-                switch (current_frame->id) {
-                    // button
-                    case 1 : destination[y][x] = BUTTON; break;
-                    // door
-                    case 2:
-                        if (current_frame->state) destination[y][x] = 0;
-                        else destination[y][x] = DOOR;
-                        break;
-                    // wall
-                    case 3: destination[y][x] = WALL; break;
-                    // hole
-                    case 4: destination[y][x] = HOLE; break;
-                    // torch
-                    case 5: destination[y][x] = TORCH; break;
-                }
-            } else destination[y][x] = 0;
-        }
-    }
-}
-
-void printMapArray(char map[SIZE_MAP][SIZE_MAP], bool show_zeros){
-    for(size_t y = 0; y < SIZE_MAP; y++){
-        for(size_t x = 0; x < SIZE_MAP; x++){
-            char current_item = map[y][x];
-            if(current_item == 'u' || current_item == '*' || isObstacle(current_item))
-                printf("%2c", current_item);
-            else {
-                if(current_item == 0 && !show_zeros) printf("  ");
-                else printf("%2d", current_item);
-            }
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
-
-void printCoord(Coord to_print){
-    printf("(%ld;%ld)\n", to_print.x, to_print.y);
-}
-
-bool isObstacle(char to_check){
-    return to_check == DOOR || to_check == WALL || to_check == HOLE || to_check == BUTTON;
-}
-
-bool canBeHover(char to_check){
-    return to_check == TORCH || to_check == 0;
-}
-
-bool isCoordsEquals(Coord c1, Coord c2){
-    return c1.x == c2.x && c1.y == c2.y;
-}
-
-void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MAP]){
-    for(size_t y = 0; y < SIZE_MAP; y++){
-        for(size_t x = 0; x < SIZE_MAP; x++){
-            destination[y][x] = source[y][x];
-        }
-    }
-}
-
-Frame** searchExits(Map* map, Coord player){
+List* searchExits(Map* map, Coord player){
     // Get all of closed doors
-    Frame** blocking_doors = (Frame**) malloc(NB_DOOR_MAX * sizeof(Frame*));
-    Frame** closed_doors = (Frame**) malloc(NB_DOOR_MAX * sizeof(Frame*));
-    size_t j = 0;
-    for (int i = 0; i < map->nb_items; i++){
-        if (map->items[i]->id == 2 && !map->items[i]->state) {
-            closed_doors[j] = map->items[i];
-            j++;
-        }
+    List* blocking_doors = initList();
+    List* closed_doors = initList();
+    ListElement* current = map->items->first;
+    while (current != NULL) {
+        if (current->data->id == 2 && !current->data->state)
+            appendAtList(closed_doors, current->data); 
+        current = current->next;
     }
 
     // Choose which doors are blocking doors
-    size_t i = 0, k = 0;
-    while(closed_doors[i] != NULL){
-        Coord door_coord; door_coord.x = closed_doors[i]->x; door_coord.y = closed_doors[i]->y;
+    current = closed_doors->first;
+    while (current != NULL) {
+        Coord door_coord; door_coord.x = current->data->x; door_coord.y = current->data->y;
         Coord* nears_doorpoints = getNearPoints(door_coord);
 
-        j = 0;
+        size_t j = 0;
         bool is_blocking = false;
         while(isInMap(nears_doorpoints[j]) && j < 4){
             Coord current_near = nears_doorpoints[j];
@@ -180,25 +106,22 @@ Frame** searchExits(Map* map, Coord player){
             j++;
         }
 
-        if(is_blocking) {
-            blocking_doors[k] = closed_doors[i];
-            k++;
-        }
-        i++;
+        if(is_blocking) appendAtList(blocking_doors, current->data);
+        current = current->next;
     }
 
     return blocking_doors;
 }
 
 Frame* getDoorLever(Map* map, Frame* door, Coord player, Stack* actions){
-    size_t i = 0;
     Frame* lever = NULL;
     Coord lever_coord;
-    while (door->usages[i] != NULL && lever == NULL) {
-        lever = door->usages[i];
+    ListElement* current = door->usages->first;
+    while (current != NULL && lever == NULL) {
+        lever = current->data;
         lever_coord.x = lever->x; lever_coord.y = lever->y;
         if(!pathfinding(map, player, lever_coord, false) || stackContainsFrame(actions, lever)) lever = NULL;
-        i++;
+        current = current->next;
     }
     return lever;
 }
@@ -213,16 +136,17 @@ bool useLever(Map* map, Frame* lever, Coord* player, bool verbose){
 
     // Open or close doors
     printFrame(lever);
-    for(size_t i = 0; i < _countofFrames(lever->usages); i++){
-        Frame* current_door = lever->usages[i];
+    ListElement* current = lever->usages->first;
+    while (current != NULL) {
+        Frame* current_door = current->data;
         current_door = locateFrame(map, current_door->x, current_door->y, false);
-        printf("%ld\n", i);
         printFrame(current_door);
         if(current_door != NULL)
             current_door->state = !current_door->state;
+        current = current->next;
     }
-    if(verbose) display(map, false);
 
+    if(verbose) display(map, false);
     return true;
 }
 
@@ -236,11 +160,11 @@ bool solve(Map* map, Stack* interactions, bool verbose){
     size_t nb_actions = 0;
     
     while(!pathfinding(map, player, end_point, false) && res){
-        Frame** blocking_doors = searchExits(map, player);
-        size_t i = 0;
+        List* blocking_doors = searchExits(map, player);
         bool can_exit = false;
-        while(blocking_doors[i] != NULL && !can_exit){
-            Frame* lever = getDoorLever(map, blocking_doors[i], player, interactions);
+        ListElement* current = blocking_doors->first;
+        while (current != NULL && !can_exit) {
+            Frame* lever = getDoorLever(map, current->data, player, interactions);
             if(lever != NULL) lever = locateFrame(map, lever->x, lever->y, false);
             if(lever != NULL){
                 can_exit = useLever(map, lever, &player, verbose);
@@ -252,7 +176,7 @@ bool solve(Map* map, Stack* interactions, bool verbose){
                     }
                 }
             }
-            i++;
+            current = current->next;
         }
         if(!can_exit) res = false;
     }

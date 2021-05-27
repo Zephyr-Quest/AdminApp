@@ -52,7 +52,7 @@ typedef struct Frame
     int id; // Object identifier : Recognises the type of the object
     int x;  // x position  
     int y;  // y position
-    struct Frame* usages[MAX_INTERACTION]; // If it is a sensor, list the linked actuators
+    struct List* usages; // If it is a sensor, list the linked actuators
     bool state; // If the door is open (false if it's not a door)
 } Frame;
 
@@ -61,12 +61,94 @@ typedef struct Map
 {
     char name[MAX_NAME_SIZE];       // Name of the map
     char author[MAX_NAME_SIZE];     // Author of the map
-    struct Frame* items[MAX_OBJECT]; // Object in the map
-    int nb_items;                   // Number of objects in the map
+    struct List* items; // Object in the map
 } Map;
 
-Frame** getAllItemInMap(Map* map, int id_object);
+/*
+ * LIST
+ */
 
+typedef struct ListElement ListElement;
+struct ListElement
+{
+    Frame* data;
+    ListElement *next;
+};
+typedef struct List List;
+struct List
+{
+    ListElement *first;
+};
+
+// Init a new list
+List* initList();
+
+// Add a new frame in the list
+void appendAtList(List *list, Frame* data);
+
+// Get a 'ListElement' at a specific rank
+ListElement* getElementAtRank(List* list, size_t rank);
+
+// Get a 'Frame' at a specific rank
+Frame* getFrameInList(List* list, size_t rank);
+
+// Try to remove a 'Frame' from a list
+void removeFromList(List *list, Frame* frame, bool verbose);
+
+/*
+ * UTILS
+ */
+
+// Get all items in map which has a specific id
+List* getAllItemInMap(Map* map, int id_object);
+
+// Create a simple frame
+Frame * createFrame(int posX, int posY, int id_object);
+
+// D4rk V4d0r is creating a map : xX_De4th-5t4r5_Xx
+Map* createMap(char name[], char author[]);
+
+// Add a frame in the map
+void addFrameInMap(Map* map, Frame* frame);
+
+// return the frame at position x, y
+Frame* locateFrame(Map* map, int posx, int posy, bool verbose);
+
+// frere il se comprend celui ci non ?
+void display(Map* map, bool show_zeros);
+
+// Compare two frames
+bool compareFrame(Frame* frame1, Frame* frame2);
+
+// Print the given frame
+void printFrame(Frame*);
+
+// Check if a point is in the map
+bool isInMap(Coord point);
+
+// Get a frame with its coord
+Frame* locateFrameByCoord(Map* map, Coord coord, bool verbose);
+
+// Generate a 2D array which store a Map
+void generateMapArray(char destination[SIZE_MAP][SIZE_MAP], Map* source);
+
+// Generate a 2D array which store a Map
+void printMapArray(char map[SIZE_MAP][SIZE_MAP], bool show_zeros);
+
+// Print given coordinates
+void printCoord(Coord);
+
+// Check if a char is an obactle
+bool isObstacle(char);
+
+// Check if a char can be hover by the player
+bool canBeHover(char);
+
+// Check if two points are equals or not
+bool isCoordsEquals(Coord, Coord);
+
+// Copy the map content into an other map
+void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MAP]);
 
 /*
  * GENERATOR
@@ -75,32 +157,11 @@ Frame** getAllItemInMap(Map* map, int id_object);
 // Return random number, between ]min ; max] 
 int nbRand(int nbMin, int nbMax);
 
-// Create a simple frame
-Frame * createFrame(int posX, int posY, int id_object);
-
 // Create an object on a wall. Set posX and posY to 0 to randomize position
 Frame* createFrameOnWall(Map* map, int posX, int posY, int id_object, bool verbose);
 
-// D4rk V4d0r is creating a map : xX_De4th-5t4r5_Xx
-Map* createMap(char name[], char author[]);
-
 // Add button's girlfriend (door)
 int addElementInButton(Frame* button, Frame* door);
-
-// Add a frame at the end of an array
-void appendFrameAtEnd(Frame* tab[],Frame* add, int max);
-
-// Add a frame in the map
-void addFrameInMap(Map* map, Frame* frame);
-
-// return the frame at the "item" rank
-Frame* getFrameAtRank(Frame* tab[], int nb_item, int item);
-
-// return the frame at position x, y
-Frame* locateFrame(Map* map, int posx, int posy, bool verbose);
-
-// frere il se comprend celui ci non ?
-void display(Map* map, bool show_zeros);
 
 // Generate a random map
 Map* generateRandomMap(int nb_item);
@@ -111,12 +172,6 @@ int addButtonInMap(Map* map, Frame* door, Frame* button);
 // Create a straight wall 
 int trumpWall(Map* map, int dir);
 
-// Remove an item in the map using its coordinates. Using ID for checking object, let id = 0 for no checking
-int deleteFrameInMap(Map* map, Frame* frame, bool verbose);
-
-// Check if the coordinates [x][y] are in the map
-bool checkCoordinates (int posx, int posy); 
-
 // Place door(s) on the map
 int placeDoor(Map* map);
 
@@ -125,12 +180,6 @@ bool passePartout(Map* map, int wallPos, int start, int end, int dir);
 
 // Check if there is a door next to a lever
 bool passeMuraille(Map* map, Frame* door, Frame* lever);
-
-// Compare two frames
-bool compareFrame(Frame* frame1, Frame* frame2);
-
-// Print the given frame
-void printFrame(Frame*);
 
 /*
  * HTTP
@@ -196,37 +245,6 @@ bool stackContains(Stack *stack, Coord data);
 bool stackContainsFrame(Stack* stack, Frame* frame);
 
 /*
- * LIST
- */
-
-typedef struct ListElement ListElement;
-struct ListElement
-{
-    Frame* data;
-    ListElement *next;
-};
-typedef struct List List;
-struct List
-{
-    ListElement *first;
-};
-
-// Init a new list
-List* initList();
-
-// Add a new frame in the list
-void appendAtList(List *list, Frame* data);
-
-// Get a 'ListElement' at a specific rank
-ListElement* getElementAtRank(List* list, size_t rank);
-
-// Get a 'Frame' at a specific rank
-Frame* getFrameInList(List* list, size_t rank);
-
-// Try to remove a 'Frame' from a list
-void removeFromList(List *list, Frame* frame, bool verbose);
-
-/*
  * SOLVER
  */
 
@@ -236,35 +254,8 @@ Coord* getNearPoints(Coord center);
 // Try to find a way from 'start' point to 'end' point
 bool pathfinding(Map* map, Coord start, Coord end, bool verbose);
 
-// Check if a point is in the map
-bool isInMap(Coord point);
-
-// return the frame at position x, y
-Frame* locateFrameByCoord(Map* map, Coord coord, bool verbose);
-
-// Generate a 2D array which store a Map
-void generateMapArray(char destination[SIZE_MAP][SIZE_MAP], Map* source);
-
-// Generate a 2D array which store a Map
-void printMapArray(char map[SIZE_MAP][SIZE_MAP], bool show_zeros);
-
-// Print given coordinates
-void printCoord(Coord);
-
-// Check if a char is an obactle
-bool isObstacle(char);
-
-// Check if a char can be hover by the player
-bool canBeHover(char);
-
-// Check if two points are equals or not
-bool isCoordsEquals(Coord, Coord);
-
-// Copy the map content into an other map
-void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MAP]);
-
 // Search all of blocking door
-Frame** searchExits(Map* map, Coord player);
+List* searchExits(Map* map, Coord player);
 
 // Search lever which open the door
 Frame* getDoorLever(Map* map, Frame* door, Coord player, Stack* actions);
@@ -277,10 +268,3 @@ bool moveTo(Map* map, Coord* player, Coord destination, bool verbose);
 
 // Try to solve 
 bool solve(Map* map, Stack* interactions, bool verbose);
-
-
-// CONIO
-// 
-int _getch(void);
-//
-int _getche(void);

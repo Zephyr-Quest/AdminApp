@@ -24,7 +24,7 @@ Exemple : `TypeDeStructure`
 
 ### Constantes
 
-Convention : Screamng Snake Case
+Convention : Screaming Snake Case
 Les mots sont en majuscules et sont liés par des underscores (tiret bas : `_`).
 Exemple : `NOM_DE_CONSTANTE`
 
