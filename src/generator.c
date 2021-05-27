@@ -126,8 +126,7 @@ int placeDoor(Map* map)
         i++;
         do
         {
-            item = locateFrame(map, x, y, false);
-           
+            item = locateFrame(map, x, y, false);           
             x--;
         } while (item == NULL && x >= 0);
         x++;
@@ -137,7 +136,6 @@ int placeDoor(Map* map)
         do
         {
             item = locateFrame(map, x, y, false);
-
             y--;
         }while (item == NULL && y >= 0);
         y++;
@@ -146,21 +144,19 @@ int placeDoor(Map* map)
 
         do
         {
-            item = locateFrame(map, x, y, false); 
-          
+            item = locateFrame(map, x, y, false);           
             x++;
         } while (item == NULL && x < 15);
         x--;
         coord[2] = x;
-        x--;
+        if(x != 14) x--;
         
         do 
         {
             item = locateFrame(map, x, y, false);
             y++;
-            
-            
-            if(x + 1 == 14 && y == 7) 
+                        
+            if(x == 14 && y == 7) 
             {
                 printf("FIN ATTEINTE");
                 creation = false;
@@ -174,31 +170,21 @@ int placeDoor(Map* map)
         {
             posed = false;
             int pos = 0;
+            int posY = 0;
 
-            while(posed == false)
+            while(posed == false && i<100)
             {  
                 i++;
                 int nb = nbRand(1,4);
                 printf("random mur = %d\n", nb);
                 switch (nb)
-                {
-                /*case 1: // left wall
-                    if(coord[0] != 0 && passePartout(map, coord[0], coord[1], coord[3], 1) == true)
-                    {
-                        createFrameOnWall(map, coord[0], pos, 2, true);
-                        posed = true;
-                        x = coord[0];
-                        x--;
-                        y = pos; 
-                       // y++;
-                        
-                    }
-                    break;*/
-                
+                {                
                 case 2: // top wall
                     if(coord[1] != 0 && passePartout(map, coord[1], coord[0], coord[2], 2) == true)
                     {
                         pos = nbRand(coord[0], coord[2] - 1);
+                        if(coord[2]==14) pos = nbRand(coord[0], coord[2]);
+
                         printf("%d / %d : %d\n", coord[0], coord[2], pos);
 
                         createFrameOnWall(map, pos, coord[1], 2, true);
@@ -207,7 +193,6 @@ int placeDoor(Map* map)
                         x = pos;
                         y = coord[1];
                         y--;
-                        //x--;
                     }
                     break;
 
@@ -215,15 +200,22 @@ int placeDoor(Map* map)
                     if(coord[2] != 14 && passePartout(map, coord[2], coord[1], coord[3], 1) == true)
                     {
                         pos = nbRand(coord[1], coord[3] - 1);
+                        if(coord[3]==14) pos = nbRand(coord[1], coord[3]);
                         printf("%d / %d : %d\n", coord[1], coord[3], pos);
                         
                         createFrameOnWall(map, coord[2], pos, 2, true);
                         posed = true;
 
+
+
+
+
+
+
+
                         x = coord[2];
                         y = pos;
-                        x++;
-                        
+                        x++;                        
                     }
                     break;
 
@@ -231,10 +223,17 @@ int placeDoor(Map* map)
                     if(coord[3] != 14 && passePartout(map, coord[3], coord[0], coord[2], 2) == true)
                     {
                         pos = nbRand(coord[0], coord[2] - 1);
+                        if(coord[2]==14)pos = nbRand(coord[0], coord[2]);
                         printf("%d / %d : %d\n", coord[0], coord[2], pos);
 
                         createFrameOnWall(map, pos, coord[3], 2, true);
                         posed = true;
+
+
+
+
+
+
 
                         x = pos;
                         y = coord[3];
@@ -244,10 +243,8 @@ int placeDoor(Map* map)
                 
                 default:
                     break;
-                }
-                //posed = true;
-                //creation = false;
-                
+                }  
+                Frame* lever = createFrame(nbRand(coord[0],coord[2]), nbRand(coord[1], coord[3]),2);         
             }    
         }
     }    
@@ -275,4 +272,9 @@ bool passePartout(Map* map, int wallPos, int start, int end, int dir)
     }
     else return EXIT_FAILURE;
     return true;  
+}
+
+bool passeMuraille(Map* map, Frame* door, Frame* lever)
+{
+
 }
