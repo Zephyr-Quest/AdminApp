@@ -2,7 +2,7 @@
 .PHONY: linux
 
 NAME ?= app
-CFLAGS ?= -W -Wall -lcurl -ljson-c
+CFLAGS ?= -W -Wall -lcurl -ljson-c -g
 SRC_FILES := $(wildcard *.c)
 
 all: linux

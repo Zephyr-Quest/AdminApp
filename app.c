@@ -1,7 +1,7 @@
 #include "header.h"
 
-#define SOLVER
-// #define GENERATOR
+//#define SOLVER
+#define GENERATOR
 
 int main() {
     srand(time(NULL));
