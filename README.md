@@ -77,3 +77,28 @@ typedef struct Map
 - Trou : `@`
 - Torche : `*`
 - Rien : `0`
+
+## Les listes
+
+```c
+// Create a List
+List* test = initList();
+
+// Add frames at the list start
+appendAtList(test, createFrame(0, 0, 1));
+appendAtList(test, createFrame(1, 0, 1));
+appendAtList(test, createFrame(2, 0, 1));
+
+// Get a Frame with its rank
+printFrame(getFrameInList(test, 1));
+
+// Remove the first added frame (0, 0, 1)
+removeFromList(test, getFrameInList(test, 2), true);
+
+// Loop through the list
+ListElement* current = test->first;
+while (current != NULL) {
+    printFrame(current->data);
+    current = current->next;
+}
+```

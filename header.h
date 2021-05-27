@@ -196,6 +196,37 @@ bool stackContains(Stack *stack, Coord data);
 bool stackContainsFrame(Stack* stack, Frame* frame);
 
 /*
+ * LIST
+ */
+
+typedef struct ListElement ListElement;
+struct ListElement
+{
+    Frame* data;
+    ListElement *next;
+};
+typedef struct List List;
+struct List
+{
+    ListElement *first;
+};
+
+// Init a new list
+List* initList();
+
+// Add a new frame in the list
+void appendAtList(List *list, Frame* data);
+
+// Get a 'ListElement' at a specific rank
+ListElement* getElementAtRank(List* list, size_t rank);
+
+// Get a 'Frame' at a specific rank
+Frame* getFrameInList(List* list, size_t rank);
+
+// Try to remove a 'Frame' from a list
+void removeFromList(List *list, Frame* frame, bool verbose);
+
+/*
  * SOLVER
  */
 
