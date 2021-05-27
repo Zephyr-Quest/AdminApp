@@ -21,7 +21,7 @@
 #define MAX_ACTIONS 100 // Maximum of player actions
 #define MAX_NAME_SIZE 255   // Maximum caracters for naming map
 #define SIZE_MAP 15 // Size of map
-#define MAX_OBJECT ((SIZE_MAP * SIZE_MAP) - 1)
+#define MAX_OBJECT 100 // Maximum amount object
 
 // Caracters
 #define BUTTON 'u'
