@@ -85,7 +85,7 @@ List* searchExits(Map* map, Coord player){
     List* closed_doors = initList();
     ListElement* current = map->items->first;
     while (current != NULL) {
-        if (current->data->id == 2 && !current->data->state)
+        if (current->data->id == ID_DOOR && !current->data->state)
             appendAtList(closed_doors, current->data); 
         current = current->next;
     }
@@ -100,13 +100,18 @@ List* searchExits(Map* map, Coord player){
         bool is_blocking = false;
         while(isInMap(nears_doorpoints[j]) && j < 4){
             Coord current_near = nears_doorpoints[j];
-            if(locateFrameByCoord(map, current_near, false) == NULL && pathfinding(map, player, current_near, false)) {
-                is_blocking = !is_blocking;
+            Frame* current_near_frame = locateFrameByCoord(map, current_near, false);
+            bool can_be_reached = pathfinding(map, player, current_near, false);
+            if(current_near_frame == NULL) {
+                if(can_be_reached) is_blocking = !is_blocking;
+            } else if(current_near_frame->id == ID_DOOR && current_near_frame->state) {
+                if(can_be_reached) is_blocking = !is_blocking;
             }
             j++;
         }
 
-        if(is_blocking) appendAtList(blocking_doors, current->data);
+        if(is_blocking)
+            appendAtList(blocking_doors, current->data);
         current = current->next;
     }
 
@@ -127,6 +132,10 @@ Frame* getDoorLever(Map* map, Frame* door, Coord player, Stack* actions){
 }
 
 bool useLever(Map* map, Frame* lever, Coord* player, bool verbose){
+    if(verbose) {
+        puts("Open the lever :");
+        printFrame(lever);
+    }
     Coord lever_coord;
     lever_coord.x = lever->x;
     lever_coord.y = lever->y;
@@ -135,7 +144,6 @@ bool useLever(Map* map, Frame* lever, Coord* player, bool verbose){
     if(!moveTo(map, player, lever_coord, false)) return false;
 
     // Open or close doors
-    printFrame(lever);
     ListElement* current = lever->usages->first;
     while (current != NULL) {
         Frame* current_door = current->data;
@@ -157,6 +165,7 @@ bool solve(Map* map, Stack* interactions, bool verbose){
 
     bool res = true;    // true means resolvable, false means unresolvable
     size_t nb_actions = 0;
+    if(verbose) printf("\n");
     
     while(!pathfinding(map, player, end_point, false) && res){
         List* blocking_doors = searchExits(map, player);

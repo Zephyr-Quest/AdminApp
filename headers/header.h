@@ -22,6 +22,13 @@
 #define SIZE_MAP 15 // Size of map
 #define MAX_OBJECT 100 // Maximum amount object
 
+// ID
+#define ID_BUTTON 1
+#define ID_DOOR 2
+#define ID_WALL 3 // ID Wall
+#define ID_HOLE 4
+#define ID_TORCH 5
+
 // Caracters
 #define BUTTON 'u'
 #define DOOR 'l'
@@ -50,8 +57,8 @@ typedef struct Frame
 {
     int id; // Object identifier : Recognises the type of the object
     Coord pos;
-    int x;  // x position
-    int y;  // y position
+    int x;  // depreciated
+    int y;  // depreciated
     struct List* usages; // If it is a sensor, list the linked actuators
     bool state; // If the door is open (false if it's not a door)
 } Frame;
@@ -102,8 +109,16 @@ void removeFromList(List *list, Frame* frame, bool verbose);
 // Get all items in map which has a specific id
 List* getAllItemInMap(Map* map, int id_object);
 
-// Create a simple frame
+// Create coordonates
+Coord createCoord(int pos_x, int pos_y);
+
+// [DEPRECIATED] 
+// Replace by createFrameByCoord (temporarly)
+// Create a simple frame 
 Frame * createFrame(int posX, int posY, int id_object);
+
+// Create a simple frame mais en version cool
+Frame * createFrameByCoord(Coord pos, int id_object);
 
 // D4rk V4d0r is creating a map : xX_De4th-5t4r5_Xx
 Map* createMap(char name[], char author[]);
@@ -111,8 +126,13 @@ Map* createMap(char name[], char author[]);
 // Add a frame in the map
 void addFrameInMap(Map* map, Frame* frame);
 
+// [DEPRECIATED] 
+// Replace by createFrameByCoord (temporarly)
 // return the frame at position x, y
 Frame* locateFrame(Map* map, int posx, int posy, bool verbose);
+
+// Locate Frame with Coordonates
+Frame* locateFrameByCoord(Map* map, Coord coord, bool verbose);
 
 // frere il se comprend celui ci non ?
 void display(Map* map, bool show_zeros);
@@ -126,8 +146,6 @@ void printFrame(Frame*);
 // Check if a point is in the map
 bool isInMap(Coord point);
 
-// Get a frame with its coord
-Frame* locateFrameByCoord(Map* map, Coord coord, bool verbose);
 
 // Generate a 2D array which store a Map
 void generateMapArray(char destination[SIZE_MAP][SIZE_MAP], Map* source);
@@ -157,8 +175,13 @@ void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MA
 // Return random number, between ]min ; max]
 int nbRand(int nbMin, int nbMax);
 
+
+// [DEPRECIATED]
 // Create an object on a wall. Set posX and posY to 0 to randomize position
 Frame* createFrameOnWall(Map* map, int posX, int posY, int id_object, bool verbose);
+
+// Create an object on a wall. Set posX and posY to 0 to randomize position
+Frame* createFrameOnWallWithCoord(Map* map, Coord coord, int id_object, bool verbose);
 
 // Add button's girlfriend (door)
 int addElementInButton(Frame* button, Frame* door);

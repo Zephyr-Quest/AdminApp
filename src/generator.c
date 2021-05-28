@@ -16,19 +16,38 @@ int nbRand(int nbMin, int nbMax)
 
 int addElementInButton(Frame* button, Frame* door) {
     if(button == NULL || door == NULL) return EXIT_FAILURE;
-    if (button->id != 1) return EXIT_FAILURE;
+    if (button->id != ID_BUTTON) return EXIT_FAILURE;
     appendAtList(button->usages, door);
     appendAtList(door->usages, button);
     return EXIT_SUCCESS;
 }
 
 Frame* createFrameOnWall(Map* map, int posX, int posY, int id_object, bool verbose) {
-    if (map == NULL || id_object == 3 || id_object ==4 ) // Watch Dog
+    if (map == NULL || id_object == ID_WALL || id_object == ID_HOLE ) // Watch Dog
     {
         if (verbose) puts("La frame n'a pas été créée : ID ou map incorrect");
         return NULL;
     } else {
         Frame* wall = locateFrame(map, posX, posY, verbose);
+        if (wall == NULL) // WatchDog
+        {
+            if (verbose) puts("La frame n'a pas été créée : coordonnées incorrecte");
+            return wall;
+        } else {
+            wall->id = id_object;
+            wall->usages = initList();
+            return wall;
+        }
+    }
+}
+
+Frame* createFrameOnWallWithCoord(Map* map, Coord coord, int id_object, bool verbose) {
+    if (map == NULL || id_object == ID_WALL || id_object == ID_HOLE ) // Watch Dog
+    {
+        if (verbose) puts("La frame n'a pas été créée : ID ou map incorrect");
+        return NULL;
+    } else {
+        Frame* wall = locateFrameByCoord(map, coord, verbose);
         if (wall == NULL) // WatchDog
         {
             if (verbose) puts("La frame n'a pas été créée : coordonnées incorrecte");
@@ -73,7 +92,7 @@ int trumpWall(Map* map, int dir) //FIXME: Corriger les problèmes de fonctions i
     {
         int x = nbRand(2,13);
         printf("x -> %d\n", x); // TODO: Retirer cette sécurité
-        while ((locateFrame(map, x-1, 7, false) != NULL) || (locateFrame(map, x+1, 7, false) != NULL ) || (locateFrame(map, x, 7, false) != NULL))
+        while ((locateFrame(map, x-2 , 7, false) != NULL) || (locateFrame(map, x+2, 7, false) != NULL) || (locateFrame(map, x-1, 7, false) != NULL) || (locateFrame(map, x+1, 7, false) != NULL ) || (locateFrame(map, x, 7, false) != NULL))
         {
             x = nbRand(2,13);
             printf("new x -> %d\n", x); // TODO: Retirer cette sécurité
@@ -81,7 +100,7 @@ int trumpWall(Map* map, int dir) //FIXME: Corriger les problèmes de fonctions i
         }
         for (size_t y = 0; y < SIZE_MAP; y++)
         {
-                Frame* tmp = createFrame(x,y,3);
+                Frame* tmp = createFrame(x, y, ID_WALL);
                 if (tmp != NULL) addFrameInMap(map, tmp);
         }
     }
@@ -109,15 +128,21 @@ int placeDoor(Map* map)
 {
     int x = 0;
     int y = 7;
+    int i = 0;
 
     int coord[4];
     bool creation = true;
     bool posed = false;
+    bool reachEnd = false;
     
     Frame* item;
-    Frame* item2;
+    Frame* door;
 
-    int i = 0;
+    Coord start;
+    Coord end;
+
+    start.x = START_X;
+    start.y = START_Y;
     
     while(creation == true && i < 100)
     {
@@ -135,6 +160,10 @@ int placeDoor(Map* map)
         {
             item = locateFrame(map, x, y, false);
             y--;
+            if(item != NULL)
+            {
+                if(item->id == 1) item = NULL;
+            }
         }while (item == NULL && y >= 0);
         y++;
         coord[1] = y;
@@ -144,6 +173,10 @@ int placeDoor(Map* map)
         {
             item = locateFrame(map, x, y, false);           
             x++;
+            if(item != NULL)
+            {
+                if(item->id == 1) item = NULL;
+            }
         } while (item == NULL && x < 15);
         x--;
         coord[2] = x;
@@ -156,8 +189,13 @@ int placeDoor(Map* map)
                         
             if(x == 14 && y == 7) 
             {
-                printf("FIN ATTEINTE");
+                puts("FIN ATTEINTE");
                 creation = false;
+                reachEnd = true;
+            }
+            if(item != NULL)
+            {
+                if(item->id == 1) item = NULL;
             }
         } while(item == NULL && y < 15);
         y--;
@@ -168,7 +206,6 @@ int placeDoor(Map* map)
         {
             posed = false;
             int pos = 0;
-            int posY = 0;
 
             while(posed == false && i<100)
             {  
@@ -185,8 +222,10 @@ int placeDoor(Map* map)
 
                         printf("%d / %d : %d\n", coord[0], coord[2], pos);
 
-                        createFrameOnWall(map, pos, coord[1], 2, true);
+                        door = createFrameOnWall(map, pos, coord[1], ID_DOOR, true);
                         posed = true;
+                        end.x = pos;
+                        end.y = coord[1];
 
                         x = pos;
                         y = coord[1];
@@ -201,8 +240,11 @@ int placeDoor(Map* map)
                         if(coord[3]==14) pos = nbRand(coord[1], coord[3]);
                         printf("%d / %d : %d\n", coord[1], coord[3], pos);
                         
-                        createFrameOnWall(map, coord[2], pos, 2, true);
+                        door = createFrameOnWall(map, coord[2], pos, ID_DOOR, true);
                         posed = true;
+                        end.x = coord[2];
+                        end.y = pos;
+
                         x = coord[2];
                         y = pos;
                         x++;                        
@@ -216,8 +258,10 @@ int placeDoor(Map* map)
                         if(coord[2]==14)pos = nbRand(coord[0], coord[2]);
                         printf("%d / %d : %d\n", coord[0], coord[2], pos);
 
-                        createFrameOnWall(map, pos, coord[3], 2, true);
+                        door = createFrameOnWall(map, pos, coord[3], ID_DOOR, true);
                         posed = true;
+                        end.x = pos;
+                        end.y = coord[3];
 
                         x = pos;
                         y = coord[3];
@@ -227,8 +271,35 @@ int placeDoor(Map* map)
                 
                 default:
                     break;
-                }  
-                Frame* lever = createFrame(nbRand(coord[0],coord[2]), nbRand(coord[1], coord[3]),2);         
+                } 
+                int j = 0;
+                if(reachEnd != true)
+                {
+                    do
+                    {
+                        posed = false;
+                        //Coord tmp = createCoord(nbRand(coord[0],coord[2]-1), nbRand(coord[1], coord[3]-1));
+                        Frame* lever = createFrame(nbRand(coord[0],coord[2]-1), nbRand(coord[1], coord[3]-1),ID_BUTTON);  
+                        addFrameInMap(map, lever);
+                        if(pathfinding(map, start, end, false) == false)
+                        {
+                            removeFromList(map->items, lever, true);
+                            puts("levier retiré");
+                        }
+                        else
+                        {
+                            posed = true;
+                            addElementInButton(lever, door);
+                            addElementInButton(door, lever);
+                            start = end;
+                            puts("levier posé");
+                        }
+                        j++;
+                    } while(posed == false && j < 50);
+                }
+                
+                 
+                     
             }    
         }
     }    
@@ -243,7 +314,7 @@ bool passePartout(Map* map, int wallPos, int start, int end, int dir)
         for (int i = start; i <= end; i++)
         {
             tmp = locateFrame(map, wallPos, i, false);
-            if(tmp->id == 2) return false;
+            if(tmp->id == ID_DOOR) return false;
         }
     }
     else if (dir == 2)
@@ -251,15 +322,9 @@ bool passePartout(Map* map, int wallPos, int start, int end, int dir)
         for (int i = start; i <= end; i++)
         {
             tmp = locateFrame(map, i, wallPos, false);
-            if(tmp->id == 2) return false;
+            if(tmp->id == ID_DOOR) return false;
         }
     }
     else return EXIT_FAILURE;
     return true;  
-}
-
-bool passeMuraille(Map* map, Frame* door, Frame* lever)
-{
-
-    return false;
 }

@@ -5,7 +5,23 @@ bool isInMap(Coord point){
 }
 
 Frame* locateFrameByCoord(Map* map, Coord coord, bool verbose){
-    return locateFrame(map, coord.x, coord.y, verbose);
+     if (map == NULL || coord.x < 0 || coord.x > SIZE_MAP-1 || coord.y < 0 || coord.y > SIZE_MAP-1 ) {
+        if (verbose) puts("La frame n'a pas été retrouvé : Carte ou coordoonées incorrecte"); // TODO: Supprimer ce message
+        return NULL;
+    }
+    ListElement* current = map->items->first;
+    Frame* found = NULL;
+    while (current != NULL && found == NULL) {
+        Coord current_coord;
+        current_coord.x = current->data->x;
+        current_coord.y = current->data->y;
+        if(isCoordsEquals(coord, current_coord)){
+            found = current->data;
+        }
+        current = current->next;
+    }
+    if (found == NULL && verbose) puts("La frame n'a pas été retrouvé : Les coordoonées ne sont pas référencés"); // TODO: Supprimer ce message
+    return found;
 }
 
 void generateMapArray(char destination[SIZE_MAP][SIZE_MAP], Map* source){
@@ -83,6 +99,13 @@ Map* createMap(char name[], char author[]) {
     return tmp;
 }
 
+Coord createCoord(int pos_x, int pos_y) {
+    Coord tmp;
+    tmp.x = pos_x;
+    tmp.y = pos_y;
+    return tmp;
+}
+
 Frame* createFrame(int posX, int posY, int id_object) {
     Frame* tmp = malloc(sizeof(Frame));
     if (tmp != NULL) {
@@ -90,6 +113,17 @@ Frame* createFrame(int posX, int posY, int id_object) {
         tmp->pos.y = posY;
         tmp->x = posX;  // depreciated
         tmp->y = posY;  // depreciated
+        tmp->id = id_object;
+        tmp->usages = initList();
+        tmp->state = false;
+    } else free(tmp);
+    return tmp;
+}
+
+Frame * createFrameByCoord(Coord pos, int id_object) {
+    Frame* tmp = malloc(sizeof(Frame));
+    if (tmp != NULL) {
+        tmp->pos = pos;
         tmp->id = id_object;
         tmp->usages = initList();
         tmp->state = false;
