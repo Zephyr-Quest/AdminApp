@@ -87,13 +87,15 @@ int trumpWall(Map* map, int dir) //FIXME: Corriger les problèmes de fonctions i
     // dir is the direction choosed to place a Wall
     // 1 -> vertical
     // 2 -> horizontal
+    int i = 0;
     printf("\n");
     if (dir == 1) // vertical
     {
         int x = nbRand(2,13);
         printf("x -> %d\n", x); // TODO: Retirer cette sécurité
-        while ((locateFrame(map, x-2 , 7, false) != NULL) || (locateFrame(map, x+2, 7, false) != NULL) || (locateFrame(map, x-1, 7, false) != NULL) || (locateFrame(map, x+1, 7, false) != NULL ) || (locateFrame(map, x, 7, false) != NULL))
+        while ((locateFrame(map, x-2 , 7, false) != NULL) || (locateFrame(map, x+2, 7, false) != NULL) || (locateFrame(map, x-1, 7, false) != NULL) || (locateFrame(map, x+1, 7, false) != NULL ) || (locateFrame(map, x, 7, false) != NULL) || i<20)
         {
+            i++;
             x = nbRand(2,13);
             printf("new x -> %d\n", x); // TODO: Retirer cette sécurité
 
@@ -108,8 +110,9 @@ int trumpWall(Map* map, int dir) //FIXME: Corriger les problèmes de fonctions i
     { 
         int y = nbRand(1,13);
         printf("y -> %d\n", y); // TODO: Retirer cette sécurité
-        while (y == 7 || ((locateFrame(map, 1, y-1, false) != NULL) || (locateFrame(map, 1, y+1, false) != NULL ) || (locateFrame(map, 1, y, false) != NULL)))
+        while (y == 7 || (locateFrame(map, 1, y-2, false) != NULL) || (locateFrame(map, 1, y+2, false) != NULL ) || (locateFrame(map, 1, y-1, false) != NULL) || (locateFrame(map, 1, y+1, false) != NULL ) || (locateFrame(map, 1, y, false) != NULL) || i<20)
         {
+            i++;
             y = nbRand(0,13);
             printf("new y -> %d\n", y); // TODO: Retirer cette sécurité
 
@@ -141,6 +144,9 @@ int placeDoor(Map* map)
     Coord start;
     Coord end;
 
+    Coord top;
+    Coord bottom;
+
     start.x = START_X;
     start.y = START_Y;
     
@@ -153,7 +159,7 @@ int placeDoor(Map* map)
             x--;
         } while (item == NULL && x >= 0);
         x++;
-        coord[0] = x;
+        top.x = x;
         x++;
 
         do
@@ -166,7 +172,7 @@ int placeDoor(Map* map)
             }
         }while (item == NULL && y >= 0);
         y++;
-        coord[1] = y;
+        top.y = y;
         y++;
 
         do
@@ -179,7 +185,7 @@ int placeDoor(Map* map)
             }
         } while (item == NULL && x < 15);
         x--;
-        coord[2] = x;
+        bottom.x = x;
         if(x != 14) x--;
         
         do 
@@ -199,9 +205,9 @@ int placeDoor(Map* map)
             }
         } while(item == NULL && y < 15);
         y--;
-        coord[3] = y;
+        bottom.y = y;
 
-        printf("\n%d; %d; %d; %d\n", coord[0], coord[1], coord[2], coord[3]);
+        printf("\n%d; %d; %d; %d\n", top.x, top.y, bottom.x, bottom.y);
         if (creation == true)
         {
             posed = false;
@@ -215,92 +221,92 @@ int placeDoor(Map* map)
                 switch (nb)
                 {                
                 case 2: // top wall
-                    if(coord[1] != 0 && passePartout(map, coord[1], coord[0], coord[2], 2) == true)
+                    if(top.y != 0 && passePartout(map, top.y, top.x, bottom.x, 2) == true)
                     {
-                        pos = nbRand(coord[0], coord[2] - 1);
-                        if(coord[2]==14) pos = nbRand(coord[0], coord[2]);
+                        pos = nbRand(top.x, bottom.x - 1);
+                        if(bottom.x==14) pos = nbRand(top.x, bottom.x);
 
-                        printf("%d / %d : %d\n", coord[0], coord[2], pos);
+                        printf("%d / %d : %d\n", top.x, bottom.x, pos);
 
-                        door = createFrameOnWall(map, pos, coord[1], ID_DOOR, true);
+                        door = createFrameOnWall(map, pos, top.y, ID_DOOR, true);
                         posed = true;
                         end.x = pos;
-                        end.y = coord[1];
+                        end.y = top.y;
 
                         x = pos;
-                        y = coord[1];
+                        y = top.y;
                         y--;
                     }
                     break;
 
                 case 3: // right wall
-                    if(coord[2] != 14 && passePartout(map, coord[2], coord[1], coord[3], 1) == true)
+                    if(bottom.x != 14 && passePartout(map, bottom.x, top.y, bottom.y, 1) == true)
                     {
-                        pos = nbRand(coord[1], coord[3] - 1);
-                        if(coord[3]==14) pos = nbRand(coord[1], coord[3]);
-                        printf("%d / %d : %d\n", coord[1], coord[3], pos);
+                        pos = nbRand(top.y, bottom.y - 1);
+                        if(bottom.y==14) pos = nbRand(top.y, bottom.y);
+                        printf("%d / %d : %d\n", top.y, bottom.y, pos);
                         
-                        door = createFrameOnWall(map, coord[2], pos, ID_DOOR, true);
+                        door = createFrameOnWall(map, bottom.x, pos, ID_DOOR, true);
                         posed = true;
-                        end.x = coord[2];
+                        end.x = bottom.x;
                         end.y = pos;
 
-                        x = coord[2];
+                        x = bottom.x;
                         y = pos;
                         x++;                        
                     }
                     break;
 
                 case 4: // bottom wall
-                    if(coord[3] != 14 && passePartout(map, coord[3], coord[0], coord[2], 2) == true)
+                    if(bottom.y != 14 && passePartout(map, bottom.y, top.x, bottom.x, 2) == true)
                     {
-                        pos = nbRand(coord[0], coord[2] - 1);
-                        if(coord[2]==14)pos = nbRand(coord[0], coord[2]);
-                        printf("%d / %d : %d\n", coord[0], coord[2], pos);
+                        pos = nbRand(top.x, bottom.x - 1);
+                        if(bottom.x == 14) pos = nbRand(top.x, bottom.x);
+                        printf("%d / %d : %d\n", top.x, bottom.x, pos);
 
-                        door = createFrameOnWall(map, pos, coord[3], ID_DOOR, true);
+                        door = createFrameOnWall(map, pos, bottom.y, ID_DOOR, true);
                         posed = true;
                         end.x = pos;
-                        end.y = coord[3];
+                        end.y = bottom.y;
 
                         x = pos;
-                        y = coord[3];
+                        y = bottom.y;
                         y++;
                     }
-                    break;
-                
+                    break;               
                 default:
                     break;
                 } 
-                int j = 0;
-                if(reachEnd != true)
+            }
+            int j = 0;
+            posed = false;
+            if(reachEnd != true)
+            {
+                while(posed == false && j < 50)
                 {
-                    do
+                    posed = false;
+                    //Coord tmp = createCoord(nbRand(top.x,bottom.x-1), nbRand(top.y, bottom.y-1));
+                    Frame* lever = createFrame(nbRand(top.x,bottom.x-1), nbRand(top.y, bottom.y-1),ID_BUTTON);  
+                    addFrameInMap(map, lever);
+                    if(pathfinding(map, start, end, false) == false)
                     {
-                        posed = false;
-                        //Coord tmp = createCoord(nbRand(coord[0],coord[2]-1), nbRand(coord[1], coord[3]-1));
-                        Frame* lever = createFrame(nbRand(coord[0],coord[2]-1), nbRand(coord[1], coord[3]-1),ID_BUTTON);  
-                        addFrameInMap(map, lever);
-                        if(pathfinding(map, start, end, false) == false)
-                        {
-                            removeFromList(map->items, lever, true);
-                            puts("levier retiré");
-                        }
-                        else
-                        {
-                            posed = true;
-                            addElementInButton(lever, door);
-                            addElementInButton(door, lever);
-                            start = end;
-                            puts("levier posé");
-                        }
-                        j++;
-                    } while(posed == false && j < 50);
+                        removeFromList(map->items, lever, true);
+                        puts("levier retiré");
+                    }
+                    else
+                    {
+                        posed = true;
+                        addElementInButton(lever, door);
+                        addElementInButton(door, lever);
+                        start = end;
+                        puts("levier posé");
+                    }
+                    j++;
                 }
-                
-                 
-                     
-            }    
+            }
+            //roccoSiffredi(map, start, end);
+            start = end;
+
         }
     }    
     return EXIT_SUCCESS;
@@ -328,3 +334,23 @@ bool passePartout(Map* map, int wallPos, int start, int end, int dir)
     else return EXIT_FAILURE;
     return true;  
 }
+
+int roccoSiffredi(Map* map, Coord start, Coord end)
+{
+    if(nbRand(0,2)==1)
+    {
+        puts("");
+    }
+
+
+    List* doors = getAllItemInMap(map, ID_DOOR);
+    
+    ListElement* current = doors->first;
+    while (current != NULL) {
+        printFrame(current->data);
+        current = current->next;
+    }
+
+    return 1;
+}
+

@@ -1,6 +1,6 @@
 #include "../headers/header.h"
 
-// #define SOLVER
+//#define SOLVER
 #define GENERATOR
 
 int main() {

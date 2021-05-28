@@ -201,8 +201,8 @@ int placeDoor(Map* map);
 // Check if there is a door on the wall
 bool passePartout(Map* map, int wallPos, int start, int end, int dir);
 
-// Check if there is a door next to a lever
-bool passeMuraille(Map* map, Frame* door, Frame* lever);
+// Place hole on the map
+int roccoSiffredi(Map* map, Coord start, Coord end);
 
 /*
  * HTTP
