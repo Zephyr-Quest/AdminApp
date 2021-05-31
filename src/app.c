@@ -1,6 +1,6 @@
 #include "../headers/header.h"
 
-//#define SOLVER
+// #define SOLVER
 #define GENERATOR
 
 int main() {
@@ -16,7 +16,7 @@ int main() {
             return 0;
         }
         for (size_t i = 0; i < nb_maps; i++) {
-            printf("(%ld) %s by %s\n", i, maps[i]->name, maps[i]->author);
+            printf("(%ld) %s by %s%s\n", i, maps[i]->name, maps[i]->author, maps[i]->solvable ? " (solvable)" : "");
         }
         printf("\n");
 
@@ -40,16 +40,34 @@ int main() {
         printf("Do you want to solve it ? (y/n) ");
         scanf(" %c", &choice);
         if(choice == 'y'){
+            // Solve the map
             Stack actions = initStack();
             bool can_be_solved = solve(to_solve, &actions, false);
             puts(can_be_solved ? "It can be solved !" : "It can't be solved...");
             if(can_be_solved){
                 puts("\nSolution :");
-                size_t i = 0;
-                while(actions.first != NULL && can_be_solved){
-                    Frame* current_lever = pullFrame(&actions, to_solve);
-                    printf("Step %ld -> (%d:%d)\n", i, current_lever->x, current_lever->y);
-                    i++;
+                Element* current = actions.first;
+                if(current == NULL) puts("No actions is required to finish this level !");
+                else {
+                    size_t i = 0;
+                    while(current != NULL){
+                        Coord current_lever = current->data;
+                        printf("Step %ld -> (%ld:%ld)\n", i, current_lever.x, current_lever.y);
+                        current = current->next;
+                        i++;
+                    }
+                }
+
+                // Update database
+                printf("Do you want to update the database ? (y/n) ");
+                scanf(" %c", &choice);
+                if(choice == 'y'){
+                    // Validate the map
+                    bool success = setCanBeDone(to_solve, &actions);
+                    if(success)
+                        puts("Everything is good !");
+                    else
+                        puts("Something went wrong...");
                 }
             }
         }
@@ -60,8 +78,12 @@ int main() {
 
         //addFrameInMap(map2, createFrame(0, 6, 2));
         display(map2, false);
-        placeDoor(map2);
+        placeDoor(map2, false);
         display(map2, false);
+        // Stack test = initStack();
+        // bool tmp = solve(map2, &test, true);
+        // if(tmp == true) puts("solvable");
+        // else puts("non solvable");
     #endif
 
     return 0;

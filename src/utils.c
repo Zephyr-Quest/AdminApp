@@ -5,7 +5,7 @@ bool isInMap(Coord point){
 }
 
 Frame* locateFrameByCoord(Map* map, Coord coord, bool verbose){
-     if (map == NULL || coord.x < 0 || coord.x > SIZE_MAP-1 || coord.y < 0 || coord.y > SIZE_MAP-1 ) {
+     if (map == NULL || coord.x > SIZE_MAP-1 || coord.y > SIZE_MAP-1 ) {
         if (verbose) puts("La frame n'a pas été retrouvé : Carte ou coordoonées incorrecte"); // TODO: Supprimer ce message
         return NULL;
     }
@@ -95,6 +95,7 @@ Map* createMap(char name[], char author[]) {
         strcpy(tmp->name, name);
         strcpy(tmp->author, author);
         tmp->items = initList();
+        tmp->solvable = false;
     } else free(tmp);
     return tmp;
 }
@@ -123,6 +124,8 @@ Frame* createFrame(int posX, int posY, int id_object) {
 Frame * createFrameByCoord(Coord pos, int id_object) {
     Frame* tmp = malloc(sizeof(Frame));
     if (tmp != NULL) {
+        tmp->x = pos.x;  // depreciated
+        tmp->y = pos.y;  // depreciated
         tmp->pos = pos;
         tmp->id = id_object;
         tmp->usages = initList();

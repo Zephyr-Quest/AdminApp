@@ -108,8 +108,8 @@ Map* * getAllMaps(size_t* nb_maps){
     }
 
     // Init props
-	struct json_object *parsed_json, *map, *name, *author, *items, *item,
-    *id, *x, *y, *usages, *usage, *usage_id, *usage_x, *usage_y;
+	struct json_object *parsed_json, *map, *name, *author, *solvable, *items, 
+    *item, *id, *x, *y, *usages, *usage, *usage_id, *usage_x, *usage_y;
 
     // Parse the json
 	parsed_json = json_tokener_parse(json_str);
@@ -122,6 +122,7 @@ Map* * getAllMaps(size_t* nb_maps){
         map = json_object_array_get_idx(parsed_json, i);
         json_object_object_get_ex(map, "name", &name);
         json_object_object_get_ex(map, "author", &author);
+        json_object_object_get_ex(map, "solvable", &solvable);
         json_object_object_get_ex(map, "items", &items);
 
         char* final_name = malloc(MAX_NAME_SIZE * sizeof(char));
@@ -129,6 +130,7 @@ Map* * getAllMaps(size_t* nb_maps){
         char* final_author = malloc(MAX_NAME_SIZE * sizeof(char));
         strcpy(final_author, json_object_get_string(author));
         Map* new_map = createMap(final_name, final_author);
+        new_map->solvable = json_object_get_boolean(solvable);
         
         for (size_t j = 0; j < json_object_array_length(items); j++){
             item = json_object_array_get_idx(items, j);
@@ -176,13 +178,14 @@ Map* getMapByName(const char* map_name){
     if(json_str == NULL || isHttpError(http_code)) return NULL;
 
     // Init props
-	struct json_object *parsed_json, *name, *author,
-    *items, *item, *id, *x, *y, *usages, *usage, *usage_id, *usage_x, *usage_y;
+	struct json_object *parsed_json, *name, *author, *solvable, *items,
+    *item, *id, *x, *y, *usages, *usage, *usage_id, *usage_x, *usage_y;
 
     // Parse the json
 	parsed_json = json_tokener_parse(json_str);
     json_object_object_get_ex(parsed_json, "name", &name);
     json_object_object_get_ex(parsed_json, "author", &author);
+    json_object_object_get_ex(parsed_json, "solvable", &solvable);
     json_object_object_get_ex(parsed_json, "items", &items);
 
     char* final_name = malloc(MAX_NAME_SIZE * sizeof(char));
@@ -190,6 +193,7 @@ Map* getMapByName(const char* map_name){
     char* final_author = malloc(MAX_NAME_SIZE * sizeof(char));
     strcpy(final_author, json_object_get_string(author));
     Map* new_map = createMap(final_name, final_author);
+    new_map->solvable = json_object_get_boolean(solvable);
 
     for (size_t j = 0; j < json_object_array_length(items); j++){
         item = json_object_array_get_idx(items, j);
@@ -265,4 +269,24 @@ bool uploadNewMap(Map* map){
         strcat(path, map->author);
     }
     return postRequest(path, map_str);
+}
+
+bool setCanBeDone(Map* map, Stack* actions){
+    if(map == NULL) return false;
+	struct json_object *solutions, *sol;
+
+    solutions = json_object_new_array();
+    while (actions->first != NULL) {
+        Coord current_sol = pull(actions);
+	    sol = json_object_new_object();
+        json_object_object_add(sol, "x", json_object_new_int(current_sol.x));
+        json_object_object_add(sol, "y", json_object_new_int(current_sol.y));
+        json_object_array_add(solutions, sol);
+    }
+    
+    const char* json = json_object_to_json_string_ext(solutions, JSON_C_TO_STRING_PLAIN);
+    char* path = malloc(15 + MAX_NAME_SIZE * sizeof(char));
+    strcpy(path, "/validate?name=");
+    strcat(path, map->name);
+    return postRequest(path, json);
 }

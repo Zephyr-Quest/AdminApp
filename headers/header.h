@@ -11,11 +11,10 @@
 #include <curl/curl.h>
 #include <json-c/json.h>
 
-#define NB_HOLE_MAX 5   // Maximum number of holes
-#define NB_BUTTON_MAX 5 // Maximum number of button
-#define NB_LEVER_MAX 5  // Maximum number of lever
-#define NB_WALL_MAX 20  // Maximum number of wall
+#define NB_HOLE_MAX 10   // Maximum number of holes
 #define NB_DOOR_MAX 15  // Maximum number of wall
+#define NB_WALL_MAX 20
+#define NB_TORCH_MAX 3  // Maximum number of torch
 #define MAX_INTERACTION 3   // Maximum interaction for items
 #define MAX_ACTIONS 100 // Maximum of player actions
 #define MAX_NAME_SIZE 255   // Maximum caracters for naming map
@@ -69,6 +68,7 @@ typedef struct Map
     char name[MAX_NAME_SIZE];       // Name of the map
     char author[MAX_NAME_SIZE];     // Author of the map
     struct List* items; // Object in the map
+    bool solvable;
 } Map;
 
 /*
@@ -101,6 +101,41 @@ Frame* getFrameInList(List* list, size_t rank);
 
 // Try to remove a 'Frame' from a list
 void removeFromList(List *list, Frame* frame, bool verbose);
+
+/*
+ * STACKS
+ */
+
+typedef struct Element Element;
+struct Element {
+    Coord data;
+    Element *next;
+};
+typedef struct Stack Stack;
+struct Stack {
+    Element *first;
+};
+
+// Init a stack
+Stack initStack();
+
+// Put a new value to the stack
+void put(Stack *stack, Coord data);
+
+// Pull the first value of the stack (remove it)
+Coord pull(Stack *stack);
+
+// Put a new value to the stack
+void putFrame(Stack *stack, Frame* data);
+
+// Pull the first value of the stack (remove it)
+Frame* pullFrame(Stack *stack, Map* map);
+
+// Check if a stack contains a coord
+bool stackContains(Stack *stack, Coord data);
+
+// Check if a stack contains a frame
+bool stackContainsFrame(Stack* stack, Frame* frame);
 
 /*
  * UTILS
@@ -156,7 +191,7 @@ void printMapArray(char map[SIZE_MAP][SIZE_MAP], bool show_zeros);
 // Print given coordinates
 void printCoord(Coord);
 
-// Check if a char is an obactle
+// Check if a char is an obstacle
 bool isObstacle(char);
 
 // Check if a char can be hover by the player
@@ -193,16 +228,19 @@ Map* generateRandomMap(int nb_item);
 int addButtonInMap(Map* map, Frame* door, Frame* button);
 
 // Create a straight wall
-int trumpWall(Map* map, int dir);
+int trumpWall(Map* map, int dir, bool verbose);
 
 // Place door(s) on the map
-int placeDoor(Map* map);
+int placeDoor(Map* map, bool verbose);
 
 // Check if there is a door on the wall
-bool passePartout(Map* map, int wallPos, int start, int end, int dir);
+bool passePartout(Map* map, int wallPos, int start, int end, int dir, bool verbose);
 
 // Place hole on the map
-int roccoSiffredi(Map* map, Coord start, Coord end);
+int roccoSiffredi(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coord lever);
+
+// Place torch on the map
+void lanceFlamme(Map* map);
 
 /*
  * HTTP
@@ -212,7 +250,6 @@ struct MemoryStruct {
   char *memory;
   size_t size;
 };
-
 
 // Check if a HTTP request was succeeded by its response code
 bool isHttpError(long http_code);
@@ -232,40 +269,8 @@ Map* getMapByName(const char* name);
 // Upload a new generated map to the server
 bool uploadNewMap(Map* map);
 
-/*
- * STACKS
- */
-
-typedef struct Element Element;
-struct Element {
-    Coord data;
-    Element *next;
-};
-typedef struct Stack Stack;
-struct Stack {
-    Element *first;
-};
-
-// Init a stack
-Stack initStack();
-
-// Put a new value to the stack
-void put(Stack *stack, Coord data);
-
-// Pull the first value of the stack (remove it)
-Coord pull(Stack *stack);
-
-// Put a new value to the stack
-void putFrame(Stack *stack, Frame* data);
-
-// Pull the first value of the stack (remove it)
-Frame* pullFrame(Stack *stack, Map* map);
-
-// Check if a stack contains a coord
-bool stackContains(Stack *stack, Coord data);
-
-// Check if a stack contains a frame
-bool stackContainsFrame(Stack* stack, Frame* frame);
+// Update the database to mark a map as solvable or not
+bool setCanBeDone(Map* map, Stack* actions);
 
 /*
  * SOLVER
