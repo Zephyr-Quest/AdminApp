@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -210,7 +211,6 @@ void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MA
 // Return random number, between ]min ; max]
 int nbRand(int nbMin, int nbMax);
 
-
 // [DEPRECIATED]
 // Create an object on a wall. Set posX and posY to 0 to randomize position
 Frame* createFrameOnWall(Map* map, int posX, int posY, int id_object, bool verbose);
@@ -230,6 +230,9 @@ int addButtonInMap(Map* map, Frame* door, Frame* button);
 // Create a straight wall
 int trumpWall(Map* map, int dir, bool verbose);
 
+// Check for trumpWall
+bool trumpTower(Map* map, Coord pos, int dir, bool verbose);
+
 // Place door(s) on the map
 int placeDoor(Map* map, bool verbose);
 
@@ -241,6 +244,7 @@ int roccoSiffredi(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coo
 
 // Place torch on the map
 void lanceFlamme(Map* map);
+
 
 /*
  * HTTP
@@ -296,3 +300,6 @@ bool moveTo(Map* map, Coord* player, Coord destination, bool verbose);
 
 // Try to solve
 bool solve(Map* map, Stack* interactions, bool verbose);
+
+// Check map data
+bool checkMap(Map* map);

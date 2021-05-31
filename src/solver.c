@@ -1,4 +1,5 @@
 #include "../headers/header.h"
+#include <stddef.h>
 
 bool moveTo(Map* base_map, Coord* player, Coord destination, bool verbose){
     // Search and print distances
@@ -190,4 +191,25 @@ bool solve(Map* map, Stack* interactions, bool verbose){
     }
 
     return res;
+}
+
+bool checkMap(Map* map){
+    bool res = true;
+    size_t nb_doors = 0, nb_levers = 0, nb_walls = 0, nb_torch = 0, nb_hole = 0;
+    ListElement* current = map->items->first;
+    while (current != NULL) {
+        Frame* current_item = current->data;
+        switch(current_item->id){
+            case 1:
+                // Lever
+                nb_levers++;
+                break;
+            case 2:
+                // Door
+                nb_doors++;
+
+                break;
+        }
+        current = current->next;
+    }
 }

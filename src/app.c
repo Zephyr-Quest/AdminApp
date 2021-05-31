@@ -80,10 +80,14 @@ int main() {
         display(map2, false);
         placeDoor(map2, false);
         display(map2, false);
-        // Stack test = initStack();
-        // bool tmp = solve(map2, &test, true);
-        // if(tmp == true) puts("solvable");
-        // else puts("non solvable");
+        /*Stack test = initStack();
+        bool tmp = solve(map2, &test, true);
+        Coord end_point, player;
+        player.x = START_X; player.y = START_Y;
+        end_point.x = END_X; end_point.y = END_Y;
+        pathfinding(map2, player, end_point, true);
+        if(tmp == true) puts("solvable");
+        else puts("non solvable");*/
     #endif
 
     return 0;
