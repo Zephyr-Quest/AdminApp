@@ -240,7 +240,7 @@ int placeDoor(Map* map, bool verbose);
 bool passePartout(Map* map, int wallPos, int start, int end, int dir, bool verbose);
 
 // Place hole on the map
-int roccoSiffredi(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coord lever);
+int placeHole(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coord lever);
 
 // Place torch on the map
 void lanceFlamme(Map* map);
@@ -299,7 +299,4 @@ bool useLever(Map* map, Frame* lever, Coord* player, bool verbose);
 bool moveTo(Map* map, Coord* player, Coord destination, bool verbose);
 
 // Try to solve
-bool solve(Map* map, Stack* interactions, bool verbose);
-
-// Check map data
-bool checkMap(Map* map);
+bool solve(Map* map, Stack* actions, bool verbose);

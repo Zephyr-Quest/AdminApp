@@ -1,4 +1,5 @@
 #include "../headers/header.h"
+#include <json-c/json_object.h>
 #include <stdlib.h>
 
 int nbRand(int nbMin, int nbMax)
@@ -89,44 +90,43 @@ int trumpWall(Map* map, int dir, bool verbose) //FIXME: Corriger les problèmes 
     // 1 -> vertical
     // 2 -> horizontal
     Coord pos;
-    //Coord temp;
     int i = 0;
     if (dir == 1) // vertical
     {
-        //int x = nbRand(2,12);
-        pos = createCoord(nbRand(2,12), 7);
-        while (!trumpTower(map, pos, dir, verbose) && i<20)
+        do
         {
+            pos = createCoord(nbRand(1,12), 7);
             i++;
-            pos.x = nbRand(2,12);
-        }
-        printf("%d  ", i);
-        if(i >= 20) return EXIT_FAILURE;;
-
-        for (size_t y = 0; y < SIZE_MAP; y++)
+        }while (trumpTower(map, pos, dir, verbose) == false && i<50);
+        if(i < 40)
         {
-            pos.y = y;
-            Frame* tmp = createFrameByCoord(pos, ID_WALL);
-            if (tmp != NULL) addFrameInMap(map, tmp);
+            for (size_t y = 0; y < SIZE_MAP; y++)
+            {
+                pos.y = y;
+                Frame* tmp = createFrameByCoord(pos, ID_WALL);
+                if (tmp != NULL) addFrameInMap(map, tmp);
+            }
         }
+        else trumpWall(map, 2, verbose);
+
     }
     else if (dir == 2)  // horizontal
     { 
-        //int y = nbRand(1,12);
-        pos = createCoord(1, nbRand(1,12));
-        while (pos.y == 7 && !trumpTower(map, pos, dir, verbose) && i<20)
+        do
         {
+            pos = createCoord(1, nbRand(1,12));
             i++;
-            pos.y = nbRand(1,12);
-        }
-        printf("%d  ", i);
-        if(i >= 20) return EXIT_FAILURE;
-        for (size_t x = 0; x < SIZE_MAP; x++)
+        }while ((pos.y == 7 || trumpTower(map, pos, dir, verbose) == false) && i<50);
+        if(i < 40)
         {
-            pos.x = x;
-            Frame* tmp = createFrameByCoord(pos, ID_WALL);
-            if (tmp != NULL) addFrameInMap(map, tmp);
-        }
+            for (size_t x = 0; x < SIZE_MAP; x++)
+            {
+                pos.x = x;
+                Frame* tmp = createFrameByCoord(pos, ID_WALL);
+                if (tmp != NULL) addFrameInMap(map, tmp);
+            }
+        }   
+        else trumpWall(map, 1, verbose);
     }
     else return EXIT_FAILURE;
     return EXIT_SUCCESS;
@@ -134,8 +134,6 @@ int trumpWall(Map* map, int dir, bool verbose) //FIXME: Corriger les problèmes 
 
 int placeDoor(Map* map, bool verbose)
 {
-    int i = 0;
-
     bool creation = true;
     bool posed = false;
     bool reachEnd = false;
@@ -148,70 +146,72 @@ int placeDoor(Map* map, bool verbose)
     Coord top;      // top left hand corner coord
     Coord bottom;   // bottom right hand corner coord
 
-    int x = 0;  // niquez vous j'en ai besoin
-    int y = 7;  // niquez vous j'en ai besoin
+    int x = 0;  // DON'T TOUCH IT
+    int y = 7;  // DON'T TOUCH IT
 
     start.x = START_X;
     start.y = START_Y;
 
-    while(creation == true && i < 100) //pose des portes
+    int watchDogs = 0;
+    int watchDogs2 = 0;
+    while(creation == true && watchDogs < 100) //pose des portes
     {
-        i++;
+        watchDogs2 = 0;
+        watchDogs++;
         do
         {
             item = locateFrameByCoord(map, createCoord(x, y), verbose);           
             x--;
-        } while (item == NULL && x >= 0);
+            watchDogs2++;
+        } while (item == NULL && x >= 0 && watchDogs2 < 20);
         x++;
         top.x = x;
         x++;
-
+        watchDogs2 = 0;
         do
         {
             item = locateFrameByCoord(map, createCoord(x, y), verbose);
             y--;
-
-        }while (item == NULL);
+            watchDogs2++;
+        }while (item == NULL && y >= 0 && watchDogs2 < 20);
         y++;
         top.y = y;
         y++;
-
+        watchDogs2 = 0;
         do
         {
             item = locateFrameByCoord(map, createCoord(x, y), verbose);           
             x++;
-
-        } while (item == NULL && x < 15);
+            watchDogs2++;
+        } while (item == NULL && x < 15 && watchDogs2 < 20);
         x--;
         bottom.x = x;
         if(x != 14) x--;
-        
+        watchDogs2 = 0;
         do 
         {
             item = locateFrameByCoord(map, createCoord(x, y), verbose);
             y++;
-
+            watchDogs2++;
             if(x == 14 && y == 7) 
             {
-                if (verbose) puts("FIN ATTEINTE");
+                /*if (verbose)*/ puts("FIN ATTEINTE");
                 creation = false;
                 reachEnd = true;
             }
-        } while(item == NULL && y < 15);
+        } while(item == NULL && y < 15 && watchDogs2 < 20);
         y--;
         bottom.y = y;
-        puts("ici");
 
-
-        if (verbose)  printf("\n%ld; %ld; %ld; %ld\n", top.x, top.y, bottom.x, bottom.y);
+       /* if (verbose) */ printf("\n%ld; %ld; %ld; %ld\n", top.x, top.y, bottom.x, bottom.y);
         if (creation == true)
         {
             posed = false;
             int pos = 0;
 
-            while(posed == false && i<100) // pose de la porte de la chambre
+            while(posed == false && watchDogs < 100) // pose de la porte de la chambre
             {  
-                i++;
+                watchDogs++;
                 int nb = nbRand(1,4);
                 if (verbose) printf("random mur = %d\n", nb);
                 switch (nb)
@@ -273,12 +273,12 @@ int placeDoor(Map* map, bool verbose)
                     break;
                 } 
             }
-            int j = 0;
+            watchDogs2 = 0;
             posed = false;
             if(reachEnd != true)
             {
                 Frame* lever;
-                while(posed == false && j < 50) //pose des leviers
+                while(posed == false && watchDogs2 < 50) //pose des leviers
                 {
                     posed = false;
                     Coord tmp = createCoord(nbRand(top.x,bottom.x-1), nbRand(top.y, bottom.y-1));
@@ -296,15 +296,14 @@ int placeDoor(Map* map, bool verbose)
                         addElementInButton(door, lever);
                         if (verbose) puts("levier posé");    //TODO : Enlever cette merde
                     }
-                    j++;
+                    watchDogs2++;
                 }
-                roccoSiffredi(map, start, end, top, bottom, lever->pos);
+                placeHole(map, start, end, top, bottom, lever->pos);
                 start = end;
             }
         }
-        // tmp = createCoord(7,14);
-        // roccoSiffredi(map, start, tmp, top, bottom, tmp);
     }  
+    placeHole(map, start, createCoord(14,7), top, bottom, createCoord(13, 7));
     lanceFlamme(map);  
     return EXIT_SUCCESS;
 }
@@ -332,11 +331,9 @@ bool passePartout(Map* map, int wallPos, int start, int end, int dir, bool verbo
     return true;  
 }
 
-int roccoSiffredi(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coord lever)
+int placeHole(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coord lever)
 {
     int nbHole = nbRand(0, ((bottom.x - top.x) * (bottom.y - top.y))/4);
-    printf("nb trou %d\n", nbHole);
-
 
     bool posed = false;
     int j = 0;
@@ -344,7 +341,7 @@ int roccoSiffredi(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coo
     {
         posed = false;
         j=0;
-        while (posed == false && j < 10)
+        while (posed == false && j < 50)
         {
             j++;
             Coord pos = createCoord(nbRand(top.x, bottom.x-1), nbRand(top.y, bottom.y-1));
@@ -388,13 +385,13 @@ bool trumpTower(Map* map, Coord pos, int dir, bool verbose)
 {
     if(dir == 1)
     {        
-        if ((locateFrameByCoord(map, createCoord(pos.x-2, 7), verbose) == NULL) && (locateFrameByCoord(map, createCoord(pos.x+2, 7), verbose) == NULL) && (locateFrameByCoord(map,createCoord(pos.x-1, 7), verbose) == NULL) && (locateFrameByCoord(map,createCoord(pos.x+1, 7), verbose) == NULL ) && (locateFrameByCoord(map,createCoord(pos.x, 7), verbose) == NULL))  return true;
-        else return false;
+        if ((locateFrameByCoord(map, createCoord(pos.x-2, 7), verbose) != NULL) || (locateFrameByCoord(map, createCoord(pos.x+2, 7), verbose) != NULL) || (locateFrameByCoord(map,createCoord(pos.x-1, 7), verbose) != NULL) || (locateFrameByCoord(map,createCoord(pos.x+1, 7), verbose) != NULL) || (locateFrameByCoord(map,createCoord(pos.x, 7), verbose) != NULL)) return false;
+        else return true;
     }
     if (dir == 2)
     {
-        if((locateFrameByCoord(map, createCoord(0, pos.y-2), verbose) == NULL) && (locateFrameByCoord(map, createCoord(0, pos.y+2), verbose) == NULL ) && (locateFrameByCoord(map, createCoord(0, pos.y-1), verbose) == NULL) && (locateFrameByCoord(map, createCoord(0, pos.y+1), verbose) == NULL ) && (locateFrameByCoord(map, createCoord(0, pos.y), verbose) == NULL)) return true;
-        else return false;
+        if((locateFrameByCoord(map, createCoord(1, pos.y-2), verbose) != NULL) || (locateFrameByCoord(map, createCoord(1, pos.y+2), verbose) != NULL) || (locateFrameByCoord(map, createCoord(1, pos.y-1), verbose) != NULL) || (locateFrameByCoord(map, createCoord(1, pos.y+1), verbose) != NULL) || (locateFrameByCoord(map, createCoord(1, pos.y), verbose) != NULL)) return false;
+        else return true;
     }
     return false;
 }

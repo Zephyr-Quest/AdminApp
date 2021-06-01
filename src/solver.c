@@ -129,7 +129,8 @@ Frame* getDoorLever(Map* map, Frame* door, Coord player, Stack* actions){
         if(!pathfinding(map, player, lever_coord, false) || stackContainsFrame(actions, lever)) lever = NULL;
         current = current->next;
     }
-    return lever;
+    if(lever == NULL) return NULL;
+    else return locateFrame(map, lever->x, lever->y, false);
 }
 
 bool useLever(Map* map, Frame* lever, Coord* player, bool verbose){
@@ -154,6 +155,9 @@ bool useLever(Map* map, Frame* lever, Coord* player, bool verbose){
         current = current->next;
     }
 
+    // Remove the lever
+    removeFromList(map->items, lever, false);
+
     if(verbose) display(map, false);
     return true;
 }
@@ -174,7 +178,6 @@ bool solve(Map* map, Stack* interactions, bool verbose){
         ListElement* current = blocking_doors->first;
         while (current != NULL && !can_exit) {
             Frame* lever = getDoorLever(map, current->data, player, interactions);
-            if(lever != NULL) lever = locateFrame(map, lever->x, lever->y, false);
             if(lever != NULL){
                 can_exit = useLever(map, lever, &player, verbose);
                 if(can_exit) {
@@ -191,25 +194,4 @@ bool solve(Map* map, Stack* interactions, bool verbose){
     }
 
     return res;
-}
-
-bool checkMap(Map* map){
-    bool res = true;
-    size_t nb_doors = 0, nb_levers = 0, nb_walls = 0, nb_torch = 0, nb_hole = 0;
-    ListElement* current = map->items->first;
-    while (current != NULL) {
-        Frame* current_item = current->data;
-        switch(current_item->id){
-            case 1:
-                // Lever
-                nb_levers++;
-                break;
-            case 2:
-                // Door
-                nb_doors++;
-
-                break;
-        }
-        current = current->next;
-    }
 }
