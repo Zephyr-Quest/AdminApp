@@ -12,10 +12,6 @@
 #include <curl/curl.h>
 #include <json-c/json.h>
 
-#define NB_HOLE_MAX 10   // Maximum number of holes
-#define NB_DOOR_MAX 15  // Maximum number of wall
-#define NB_WALL_MAX 20
-#define NB_TORCH_MAX 3  // Maximum number of torch
 #define MAX_INTERACTION 3   // Maximum interaction for items
 #define MAX_ACTIONS 100 // Maximum of player actions
 #define MAX_NAME_SIZE 255   // Maximum caracters for naming map
@@ -103,6 +99,12 @@ Frame* getFrameInList(List* list, size_t rank);
 // Try to remove a 'Frame' from a list
 void removeFromList(List *list, Frame* frame, bool verbose);
 
+// Get an item in a list with cood
+Frame* getDoorByCoord(List* doors, Coord pos);
+
+// Print all the Frame in a list
+void printFrameList(List* frames);
+
 /*
  * STACKS
  */
@@ -156,6 +158,9 @@ Frame * createFrame(int posX, int posY, int id_object);
 // Create a simple frame mais en version cool
 Frame * createFrameByCoord(Coord pos, int id_object);
 
+// Copy a map
+Map* copyMap(Map* map);
+
 // D4rk V4d0r is creating a map : xX_De4th-5t4r5_Xx
 Map* createMap(char name[], char author[]);
 
@@ -182,7 +187,6 @@ void printFrame(Frame*);
 // Check if a point is in the map
 bool isInMap(Coord point);
 
-
 // Generate a 2D array which store a Map
 void generateMapArray(char destination[SIZE_MAP][SIZE_MAP], Map* source);
 
@@ -204,6 +208,9 @@ bool isCoordsEquals(Coord, Coord);
 // Copy the map content into an other map
 void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MAP]);
 
+// Close all doors in the map
+void closeAllDoors(Map* map);
+
 /*
  * GENERATOR
  */
@@ -211,9 +218,7 @@ void mapCopy(char destination[SIZE_MAP][SIZE_MAP], char source[SIZE_MAP][SIZE_MA
 // Return random number, between ]min ; max]
 int nbRand(int nbMin, int nbMax);
 
-// [DEPRECIATED]
-// Create an object on a wall. Set posX and posY to 0 to randomize position
-Frame* createFrameOnWall(Map* map, int posX, int posY, int id_object, bool verbose);
+
 
 // Create an object on a wall. Set posX and posY to 0 to randomize position
 Frame* createFrameOnWallWithCoord(Map* map, Coord coord, int id_object, bool verbose);
@@ -222,7 +227,7 @@ Frame* createFrameOnWallWithCoord(Map* map, Coord coord, int id_object, bool ver
 int addElementInButton(Frame* button, Frame* door);
 
 // Generate a random map
-Map* generateRandomMap(int nb_item);
+Map* generateRandomMap();
 
 // Add a door and a button in a map
 int addButtonInMap(Map* map, Frame* door, Frame* button);
@@ -240,10 +245,10 @@ int placeDoor(Map* map, bool verbose);
 bool passePartout(Map* map, int wallPos, int start, int end, int dir, bool verbose);
 
 // Place hole on the map
-int placeHole(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coord lever);
+int holeInOne(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coord lever);
 
 // Place torch on the map
-void lanceFlamme(Map* map);
+void flameThrower(Map* map);
 
 
 /*
@@ -286,6 +291,8 @@ Coord* getNearPoints(Coord center);
 // Try to find a way from 'start' point to 'end' point
 bool pathfinding(Map* map, Coord start, Coord end, bool verbose);
 
+Frame* pathThroughDoors(Map* map, Coord start, bool verbose);
+
 // Search all of blocking door
 List* searchExits(Map* map, Coord player);
 
@@ -300,3 +307,9 @@ bool moveTo(Map* map, Coord* player, Coord destination, bool verbose);
 
 // Try to solve
 bool solve(Map* map, Stack* actions, bool verbose);
+
+// Search optimise solution
+Frame* pathThroughDoors(Map* base_map, Coord start, bool verbose);
+
+// Get a door by its coord in a List
+Frame* getDoorByCoord(List* doors, Coord pos);

@@ -1,7 +1,8 @@
 #include "../headers/header.h"
+#include <stdio.h>
 
-// #define SOLVER
-#define GENERATOR
+#define SOLVER
+// #define GENERATOR
 
 int main() {
     srand(time(NULL));
@@ -58,28 +59,27 @@ int main() {
                     }
                 }
 
+                Coord start; start.x = START_X; start.y = START_Y;
+                pathThroughDoors(to_solve, start, true);
+
                 // Update database
-                printf("Do you want to update the database ? (y/n) ");
-                scanf(" %c", &choice);
-                if(choice == 'y'){
-                    // Validate the map
-                    bool success = setCanBeDone(to_solve, &actions);
-                    if(success)
-                        puts("Everything is good !");
-                    else
-                        puts("Something went wrong...");
-                }
+                // printf("Do you want to update the database ? (y/n) ");
+                // scanf(" %c", &choice);
+                // if(choice == 'y'){
+                //     // Validate the map
+                //     bool success = setCanBeDone(to_solve, &actions);
+                //     if(success) puts("Everything is good !");
+                //     else puts("Something went wrong...");
+                // }
             }
         }
+
     #endif
 
     #ifdef GENERATOR
-        Map* map2 = generateRandomMap(2);
-
-        //addFrameInMap(map2, createFrame(0, 6, 2));
+        Map* map2 = generateRandomMap();
         display(map2, false);
-        placeDoor(map2, false);
-        display(map2, false);
+        
         /*Stack test = initStack();
         bool tmp = solve(map2, &test, true);
         Coord end_point, player;

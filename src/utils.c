@@ -1,4 +1,5 @@
 #include "../headers/header.h"
+#include <curl/curl.h>
 
 bool isInMap(Coord point){
     return point.x < SIZE_MAP && point.y < SIZE_MAP;
@@ -43,6 +44,10 @@ void generateMapArray(char destination[SIZE_MAP][SIZE_MAP], Map* source){
                     case 4: destination[y][x] = HOLE; break;
                     // torch
                     case 5: destination[y][x] = TORCH; break;
+                    default:
+                        if(current_frame->id > 5)
+                            destination[y][x] = -(current_frame->id - 5);
+                        break;
                 }
             } else destination[y][x] = 0;
         }
@@ -54,10 +59,11 @@ void printMapArray(char map[SIZE_MAP][SIZE_MAP], bool show_zeros){
         for(size_t x = 0; x < SIZE_MAP; x++){
             char current_item = map[y][x];
             if(current_item == BUTTON || current_item == TORCH || isObstacle(current_item))
-                printf("%2c", current_item);
+                printf("%3c", current_item);
             else {
-                if(current_item == 0 && !show_zeros) printf("  ");
-                else printf("%2d", current_item);
+                if(current_item == 0 && !show_zeros) printf("   ");
+                else if (current_item < 0) printf("%3d", abs(current_item));
+                else printf("%3d", current_item);
             }
         }
         printf("\n");
@@ -74,7 +80,7 @@ bool isObstacle(char to_check){
 }
 
 bool canBeHover(char to_check){
-    return to_check == TORCH || to_check == 0;
+    return to_check == TORCH || to_check <= 0;
 }
 
 bool isCoordsEquals(Coord c1, Coord c2){
@@ -186,4 +192,23 @@ bool compareFrame(Frame* frame1, Frame* frame2) {
 void printFrame(Frame* frame) {
     if(frame == NULL) puts("The frame is NULL");
     else printf("id: %d, x: %d, y: %d\n", frame->id, frame->x, frame->y);
+}
+
+Map* copyMap(Map* map) {
+    Map* tmp = createMap(map->name, map->author);
+    ListElement* current = map->items->first;
+    while (current != NULL) {
+        appendAtList(tmp->items, current->data);
+        current = current->next;
+    }
+    return tmp;
+}
+
+void closeAllDoors(Map* map){
+    List* doors = getAllItemInMap(map, 2);
+    ListElement* current = doors->first;
+    while (current != NULL) {
+        current->data->state = false;
+        current = current->next;
+    }
 }

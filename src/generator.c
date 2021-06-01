@@ -24,25 +24,6 @@ int addElementInButton(Frame* button, Frame* door) {
     return EXIT_SUCCESS;
 }
 
-Frame* createFrameOnWall(Map* map, int posX, int posY, int id_object, bool verbose) {
-    if (map == NULL || id_object == ID_WALL || id_object == ID_HOLE ) // Watch Dog
-    {
-        if (verbose) puts("La frame n'a pas été créée : ID ou map incorrect");
-        return NULL;
-    } else {
-        Frame* wall = locateFrame(map, posX, posY, verbose);
-        if (wall == NULL) // WatchDog
-        {
-            if (verbose) puts("La frame n'a pas été créée : coordonnées incorrecte");
-            return wall;
-        } else {
-            wall->id = id_object;
-            wall->usages = initList();
-            return wall;
-        }
-    }
-}
-
 Frame* createFrameOnWallWithCoord(Map* map, Coord coord, int id_object, bool verbose) {
     if (map == NULL || id_object == ID_WALL || id_object == ID_HOLE ) // Watch Dog
     {
@@ -70,9 +51,8 @@ int addButtonInMap(Map* map, Frame* button, Frame* door) {
     return EXIT_SUCCESS;
 }
 
-Map* generateRandomMap(int nb_item) {
-    if (nb_item > NB_WALL_MAX) return NULL;
-    Map* map = createMap("Random", "Enguerrand");
+Map* generateRandomMap() {
+    Map* map = createMap("Random", "Generatoooooooor");
     if (map == NULL) return NULL;
 
     trumpWall(map, 1, false);
@@ -81,10 +61,14 @@ Map* generateRandomMap(int nb_item) {
         trumpWall(map, nbRand(0,2), false);
     }
 
+    placeDoor(map, false);
+
+    flameThrower(map);
+
     return map;
 }
 
-int trumpWall(Map* map, int dir, bool verbose) //FIXME: Corriger les problèmes de fonctions infinies.
+int trumpWall(Map* map, int dir, bool verbose) 
 {
     // dir is the direction choosed to place a Wall
     // 1 -> vertical
@@ -195,7 +179,7 @@ int placeDoor(Map* map, bool verbose)
             watchDogs2++;
             if(x == 14 && y == 7) 
             {
-                /*if (verbose)*/ puts("FIN ATTEINTE");
+                if (verbose) puts("FIN ATTEINTE");
                 creation = false;
                 reachEnd = true;
             }
@@ -203,7 +187,7 @@ int placeDoor(Map* map, bool verbose)
         y--;
         bottom.y = y;
 
-       /* if (verbose) */ printf("\n%ld; %ld; %ld; %ld\n", top.x, top.y, bottom.x, bottom.y);
+        if (verbose) printf("\n%ld; %ld; %ld; %ld\n", top.x, top.y, bottom.x, bottom.y);
         if (creation == true)
         {
             posed = false;
@@ -287,24 +271,23 @@ int placeDoor(Map* map, bool verbose)
                     if(pathfinding(map, start, end, verbose) == false)
                     {
                         removeFromList(map->items, lever, true);
-                        if (verbose) puts("levier retiré");  //TODO : Enlever cette merde
+                        if (verbose) puts("levier retiré");
                     }
                     else
                     {
                         posed = true;
                         addElementInButton(lever, door);
                         addElementInButton(door, lever);
-                        if (verbose) puts("levier posé");    //TODO : Enlever cette merde
+                        if (verbose) puts("levier posé");
                     }
                     watchDogs2++;
                 }
-                placeHole(map, start, end, top, bottom, lever->pos);
+                holeInOne(map, start, end, top, bottom, lever->pos);
                 start = end;
             }
         }
     }  
-    placeHole(map, start, createCoord(14,7), top, bottom, createCoord(13, 7));
-    lanceFlamme(map);  
+    holeInOne(map, start, createCoord(14,7), top, bottom, createCoord(13, 7));
     return EXIT_SUCCESS;
 }
 
@@ -327,11 +310,10 @@ bool passePartout(Map* map, int wallPos, int start, int end, int dir, bool verbo
             if(tmp->id == ID_DOOR) return false;
         }
     }
-    else return EXIT_FAILURE;
     return true;  
 }
 
-int placeHole(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coord lever)
+int holeInOne(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coord lever)
 {
     int nbHole = nbRand(0, ((bottom.x - top.x) * (bottom.y - top.y))/4);
 
@@ -360,7 +342,7 @@ int placeHole(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coord l
     return 1;
 }
 
-void lanceFlamme(Map* map)
+void flameThrower(Map* map)
 {
     Coord pos;
     Frame* tmp;

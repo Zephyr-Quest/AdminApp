@@ -60,3 +60,14 @@ void removeFromList(List *list, Frame* frame, bool verbose) {
     }
     if(!match && verbose) puts("[removeFromList] Nothing was removed...");
 }
+
+void printFrameList(List* frames) {
+    ListElement* current = frames->first;
+    size_t i = 0;
+    while (current != NULL) {
+        Frame* frame = current->data;
+        printf("Frame %ld -> ID: %d, x: %ld, y: %zu\n", i, frame->id, frame->pos.x, frame->pos.y);
+        current = current->next;
+        i++;
+    }
+}

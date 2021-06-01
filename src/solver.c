@@ -195,3 +195,67 @@ bool solve(Map* map, Stack* interactions, bool verbose){
 
     return res;
 }
+
+Frame* pathThroughDoors(Map* base_map, Coord start, bool verbose){
+    // Set up the map
+    Map* map = copyMap(base_map);
+    Coord end_point; end_point.x = END_X; end_point.y = END_Y;
+    closeAllDoors(map);
+
+    // Front propagation
+    char d = 1;
+    List* blocking_doors = searchExits(map, start);
+    List* super_doors = initList();
+    while (blocking_doors->first != NULL) {
+        // Loop through blocking_doors
+        ListElement* current = blocking_doors->first;
+        while (current != NULL) {
+            Frame* blocking_door = current->data;
+            Frame* to_store = createFrameByCoord(blocking_door->pos, 5 + d);
+            appendAtList(super_doors, to_store);
+            blocking_door->state = true;
+            d++;
+            current = current->next;
+        }
+        blocking_doors = searchExits(map, start);
+    }
+    if(verbose) {
+        display(map, false);
+        printFrameList(super_doors);
+    }
+    closeAllDoors(map);
+
+    // Back propagation
+    List* best_path = initList();
+    while (!pathfinding(map, end_point, start, false)) {
+        // Loop through blocking_doors
+        blocking_doors = searchExits(map, end_point);
+        ListElement* current = blocking_doors->first;
+        Frame* chosen_door = NULL;
+        while (current != NULL) {
+            Frame* blocking_door = current->data;
+            blocking_door = getDoorByCoord(super_doors, blocking_door->pos);
+            if(blocking_door != NULL){
+                if(chosen_door == NULL || blocking_door->id < chosen_door->id)
+                    chosen_door = locateFrameByCoord(map, blocking_door->pos, false);
+            }
+            current = current->next;
+        }
+        if(chosen_door != NULL) {
+            chosen_door->state = true;
+            appendAtList(best_path, chosen_door);
+            if (verbose) printFrame(chosen_door);
+        }
+    }
+
+    return best_path->first == NULL ? NULL : best_path->first->data;
+}
+
+Frame* getDoorByCoord(List* doors, Coord pos){
+    if (doors == NULL) return NULL;
+    ListElement* current_door = doors->first;
+    while (current_door != NULL && !isCoordsEquals(current_door->data->pos, pos))
+        current_door = current_door->next;
+    if(current_door == NULL) return NULL;
+    return current_door->data;
+}
