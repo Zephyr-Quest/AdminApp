@@ -9,8 +9,11 @@ int nbRand(int nbMin, int nbMax)
         int x = 0;
         do
         {
-            x = 1 + rand()/((RAND_MAX + 1u)/nbMax);
-        } while (x <= nbMin);      
+            //x = 1 + rand()/((RAND_MAX + 1u)/nbMax);
+            //x = (rand() % (nbMax - nbMin + 1)) + nbMin;
+            x = (int)((double)rand() / ((double)RAND_MAX + 1) * ((double)nbMax - (double)nbMin)) + nbMin;
+
+        } while (x < nbMin);      
         return x;
     }
     return EXIT_FAILURE;
@@ -58,7 +61,7 @@ Map* generateRandomMap() {
     trumpWall(map, 1, false);
     for (int i = 0; i < 3; i++)
     {    
-        trumpWall(map, nbRand(0,2), false);
+        trumpWall(map, nbRand(1,3), false);
     }
 
     placeDoor(map, false);
@@ -79,7 +82,7 @@ int trumpWall(Map* map, int dir, bool verbose)
     {
         do
         {
-            pos = createCoord(nbRand(1,12), 7);
+            pos = createCoord(nbRand(2,13), 7);
             i++;
         }while (trumpTower(map, pos, dir, verbose) == false && i<50);
         if(i < 40)
@@ -98,7 +101,7 @@ int trumpWall(Map* map, int dir, bool verbose)
     { 
         do
         {
-            pos = createCoord(1, nbRand(1,12));
+            pos = createCoord(1, nbRand(2,13));
             i++;
         }while ((pos.y == 7 || trumpTower(map, pos, dir, verbose) == false) && i<50);
         if(i < 40)
@@ -196,15 +199,15 @@ int placeDoor(Map* map, bool verbose)
             while(posed == false && watchDogs < 100) // pose de la porte de la chambre
             {  
                 watchDogs++;
-                int nb = nbRand(1,4);
+                int nb = nbRand(2,5);
                 if (verbose) printf("random mur = %d\n", nb);
                 switch (nb)
                 {                
                 case 2: // top wall
                     if(top.y != 0 && passePartout(map, top.y, top.x, bottom.x, 2, verbose) == true)
                     {
-                        pos = nbRand(top.x, bottom.x - 1);
-                        if(bottom.x==14) pos = nbRand(top.x, bottom.x);
+                        pos = nbRand(top.x + 1, bottom.x);
+                        if(bottom.x==14) pos = nbRand(top.x + 1, bottom.x+1); // TODO vérifier
 
                         if (verbose) printf("%ld / %ld : %d\n", top.x, bottom.x, pos);
                         door = createFrameOnWallWithCoord(map, createCoord(pos, top.y), ID_DOOR, verbose);
@@ -221,8 +224,8 @@ int placeDoor(Map* map, bool verbose)
                 case 3: // right wall
                     if(bottom.x != 14 && passePartout(map, bottom.x, top.y, bottom.y, 1, verbose) == true)
                     {
-                        pos = nbRand(top.y, bottom.y - 1);
-                        if(bottom.y==14) pos = nbRand(top.y, bottom.y);
+                        pos = nbRand(top.y + 1, bottom.y);
+                        if(bottom.y==14) pos = nbRand(top.y + 1, bottom.y + 1); //TODO vérifier
                         if (verbose) printf("%ld / %ld : %d\n", top.y, bottom.y, pos);
                         
                         door = createFrameOnWallWithCoord(map, createCoord(bottom.x, pos), ID_DOOR, verbose);
@@ -239,8 +242,8 @@ int placeDoor(Map* map, bool verbose)
                 case 4: // bottom wall
                     if(bottom.y != 14 && passePartout(map, bottom.y, top.x, bottom.x, 2, verbose) == true)
                     {
-                        pos = nbRand(top.x, bottom.x - 1);
-                        if(bottom.x == 14) pos = nbRand(top.x, bottom.x);
+                        pos = nbRand(top.x + 1, bottom.x);
+                        if(bottom.x == 14) pos = nbRand(top.x + 1, bottom.x + 1);   // TODO vérifier
                         if (verbose) printf("%ld / %ld : %d\n", top.x, bottom.x, pos);
 
                         door = createFrameOnWallWithCoord(map, createCoord(pos, bottom.y), ID_DOOR, verbose);
@@ -265,7 +268,19 @@ int placeDoor(Map* map, bool verbose)
                 while(posed == false && watchDogs2 < 50) //pose des leviers
                 {
                     posed = false;
-                    Coord tmp = createCoord(nbRand(top.x,bottom.x-1), nbRand(top.y, bottom.y-1));
+                    Coord tmp;
+                    
+                    if(top.x == 0 && top.y == 0) tmp = createCoord(nbRand(top.x,bottom.x), nbRand(top.y, bottom.y));
+                    else if(top.y == 0 && bottom.x == 14) tmp = createCoord(nbRand(top.x+1,bottom.x), nbRand(top.y, bottom.y));
+                    else if(bottom.x == 14 && bottom.y == 14) tmp = createCoord(nbRand(top.x+1,bottom.x+1), nbRand(top.y+1, bottom.y+1));
+                    else if(top.x == 0 && bottom.y == 14) createCoord(nbRand(top.x,bottom.x), nbRand(top.y+1, bottom.y+1));
+                    else if (top.y == 0) tmp = createCoord(nbRand(top.x+1,bottom.x), nbRand(top.y, bottom.y));
+                    else if (bottom.y == 14) tmp = createCoord(nbRand(top.x+1,bottom.x), nbRand(top.y+1, bottom.y+1));
+                    else  tmp = createCoord(nbRand(top.x+1,bottom.x), nbRand(top.y+1, bottom.y));
+
+                    
+                    printf("%zu ; %zu ||| ", tmp.x, tmp.y);
+                    
                     lever = createFrameByCoord(tmp ,ID_BUTTON);  
                     addFrameInMap(map, lever);
                     if(pathfinding(map, start, end, verbose) == false)
@@ -315,7 +330,7 @@ bool passePartout(Map* map, int wallPos, int start, int end, int dir, bool verbo
 
 int holeInOne(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coord lever)
 {
-    int nbHole = nbRand(0, ((bottom.x - top.x) * (bottom.y - top.y))/4);
+    int nbHole = nbRand(1, ((bottom.x - top.x) * (bottom.y - top.y))/4+1);
 
     bool posed = false;
     int j = 0;
@@ -326,7 +341,7 @@ int holeInOne(Map* map, Coord start, Coord end, Coord top, Coord bottom, Coord l
         while (posed == false && j < 50)
         {
             j++;
-            Coord pos = createCoord(nbRand(top.x, bottom.x-1), nbRand(top.y, bottom.y-1));
+            Coord pos = createCoord(nbRand(top.x+1, bottom.x), nbRand(top.y+1, bottom.y));
             if (locateFrameByCoord(map, pos, false) == NULL)
             {
                 Frame* hole = createFrameByCoord(pos, ID_HOLE);  
@@ -347,12 +362,12 @@ void flameThrower(Map* map)
     Coord pos;
     Frame* tmp;
     bool posed = false;
-    for (int i = 0; i < nbRand(0,3); i++)
+    for (int i = 0; i < nbRand(1,4); i++)
     {
         posed = false;
         while(posed == false)
         {
-            pos = createCoord(nbRand(0, 14), nbRand(0, 14));
+            pos = createCoord(nbRand(1, 15), nbRand(1, 15));
             if (locateFrameByCoord(map, pos, false) == NULL)
             {
                 tmp = createFrameByCoord(pos, ID_TORCH);

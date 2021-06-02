@@ -64,3 +64,14 @@ bool stackContainsFrame(Stack* stack, Frame* frame){
     Coord data; data.x = frame->x; data.y = frame->y;
     return stackContains(stack, data);
 }
+
+size_t countOfStack(Stack* stack) {
+    if (stack == NULL) return 0;
+    Element* el = stack->first;
+    size_t counter = 0;
+    while(el != NULL) {
+        el = el->next;
+        counter++;
+    }
+    return counter;
+}

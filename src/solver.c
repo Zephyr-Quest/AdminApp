@@ -162,8 +162,9 @@ bool useLever(Map* map, Frame* lever, Coord* player, bool verbose){
     return true;
 }
 
-bool solve(Map* map, Stack* interactions, bool verbose){
-    // Start and end point
+bool solve(Map* base_map, Stack* interactions, bool verbose){
+    // Setup the map
+    Map* map = copyMap(base_map);
     Coord end_point, player;
     player.x = START_X; player.y = START_Y;
     end_point.x = END_X; end_point.y = END_Y;
@@ -263,4 +264,40 @@ Frame* getDoorByCoord(List* doors, Coord pos){
         current_door = current_door->next;
     if(current_door == NULL) return NULL;
     return current_door->data;
+}
+
+bool searchEasySolution(Map* map, Stack* actions, size_t max_actions, bool verbose){
+    // Start and end point
+    Coord end_point, player;
+    player.x = START_X; player.y = START_Y;
+    end_point.x = END_X; end_point.y = END_Y;
+
+    size_t nb_actions = 0;
+    if(verbose) printf("\n");
+
+    Frame* blocking_door = pathThroughDoors(map, player, false);
+    while(blocking_door != NULL) {
+        Frame* lever = getDoorLever(map, blocking_door, player, actions);
+        bool can_exit = false;
+        if(lever != NULL){
+            // Try to open the door
+            can_exit = useLever(map, lever, &player, verbose);
+            if(can_exit && nb_actions < max_actions) {
+                // Save the current lever
+                putFrame(actions, lever);
+                nb_actions++;
+            }
+        }
+        if(lever == NULL || !can_exit){
+            // Replace the door by a wall
+            if(verbose){
+                puts("Block this door :");
+                printFrame(blocking_door);
+            }
+            blocking_door->id = 3;
+        }
+        blocking_door = pathThroughDoors(map, player, false);
+    }
+
+    return pathfinding(map, player, end_point, false);
 }

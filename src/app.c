@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 // #define SOLVER
-#define GENERATOR
+// #define GENERATOR
 
 int main() {
     srand(time(NULL));
@@ -58,9 +58,10 @@ int main() {
                         i++;
                     }
                 }
-
-                Coord start; start.x = START_X; start.y = START_Y;
-                pathThroughDoors(to_solve, start, true);
+                
+                //puts("Trying to find a easier solution :");
+                //Stack easy_actions = initStack();
+                //searchEasySolution(to_solve, &easy_actions, countOfStack(&actions), true);
 
                 // Update database
                 // printf("Do you want to update the database ? (y/n) ");

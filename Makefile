@@ -21,3 +21,9 @@ run:
 	
 clean:
 	rm -rf $(NAME)
+
+gen: 
+	$(CC) -o $(OUTPUT_DIR)/$(NAME) $(SRC_FILES) $(CFLAGS) -D GENERATOR
+
+solv:
+	$(CC) -o $(OUTPUT_DIR)/$(NAME) $(SRC_FILES) $(CFLAGS) -D SOLVER

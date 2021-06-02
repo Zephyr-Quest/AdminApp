@@ -140,6 +140,9 @@ bool stackContains(Stack *stack, Coord data);
 // Check if a stack contains a frame
 bool stackContainsFrame(Stack* stack, Frame* frame);
 
+// Count items in stack
+size_t countOfStack(Stack* stack);
+
 /*
  * UTILS
  */
@@ -313,3 +316,6 @@ Frame* pathThroughDoors(Map* base_map, Coord start, bool verbose);
 
 // Get a door by its coord in a List
 Frame* getDoorByCoord(List* doors, Coord pos);
+
+// Try to find an easier solution
+bool searchEasySolution(Map* map, Stack* actions, size_t max_actions, bool verbose);
