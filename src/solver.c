@@ -41,7 +41,7 @@ bool moveTo(Map* base_map, Coord* player, Coord destination, bool verbose){
     while(isInMap(nears_endpoint[i]) && i < 4){
         Coord current_near = nears_endpoint[i];
         char current_near_value = distance_map[current_near.y][current_near.x];
-        if(!canBeHover(current_near_value) && !isObstacle(current_near_value)){
+        if((!canBeHover(current_near_value) && !isObstacle(current_near_value)) || isCoordsEquals(current_near, *player)){
             // A path exists
             res = true;
             player->x = current_near.x;
@@ -111,8 +111,9 @@ List* searchExits(Map* map, Coord player){
             j++;
         }
 
-        if(is_blocking)
+        if(is_blocking){
             appendAtList(blocking_doors, current->data);
+        }
         current = current->next;
     }
 
@@ -125,12 +126,12 @@ Frame* getDoorLever(Map* map, Frame* door, Coord player, Stack* actions){
     ListElement* current = door->usages->first;
     while (current != NULL && lever == NULL) {
         lever = current->data;
-        lever_coord.x = lever->x; lever_coord.y = lever->y;
+        lever_coord = lever->pos;
         if(!pathfinding(map, player, lever_coord, false) || stackContainsFrame(actions, lever)) lever = NULL;
         current = current->next;
     }
     if(lever == NULL) return NULL;
-    else return locateFrame(map, lever->x, lever->y, false);
+    else return locateFrameByCoord(map, lever->pos, false);
 }
 
 bool useLever(Map* map, Frame* lever, Coord* player, bool verbose){
@@ -149,9 +150,10 @@ bool useLever(Map* map, Frame* lever, Coord* player, bool verbose){
     ListElement* current = lever->usages->first;
     while (current != NULL) {
         Frame* current_door = current->data;
-        current_door = locateFrame(map, current_door->x, current_door->y, false);
-        if(current_door != NULL)
+        current_door = locateFrameByCoord(map, current_door->pos, true);
+        if(current_door != NULL) {
             current_door->state = !current_door->state;
+        }
         current = current->next;
     }
 
@@ -197,11 +199,11 @@ bool solve(Map* base_map, Stack* interactions, bool verbose){
     return res;
 }
 
-Frame* pathThroughDoors(Map* base_map, Coord start, bool verbose){
+List* pathThroughDoors(Map* base_map, Coord start, bool verbose){
     // Set up the map
     Map* map = copyMap(base_map);
     Coord end_point; end_point.x = END_X; end_point.y = END_Y;
-    closeAllDoors(map);
+    if(pathfinding(map, start, end_point, false)) return NULL;
 
     // Front propagation
     char d = 1;
@@ -225,12 +227,12 @@ Frame* pathThroughDoors(Map* base_map, Coord start, bool verbose){
         display(map, false);
         printFrameList(super_doors);
     }
-    closeAllDoors(map);
 
     // Back propagation
+    map = copyMap(base_map);
     List* best_path = initList();
-    while (!pathfinding(map, end_point, start, false)) {
-        blocking_doors = searchExits(map, end_point);
+    blocking_doors = searchExits(map, end_point);
+    while (!pathfinding(map, end_point, start, false) && blocking_doors->first != NULL) {
         ListElement* current = blocking_doors->first;
         Frame* chosen_door = NULL;
         // Loop through blocking_doors
@@ -247,6 +249,7 @@ Frame* pathThroughDoors(Map* base_map, Coord start, bool verbose){
             chosen_door->state = true;
             appendAtList(best_path, chosen_door);
         }
+        blocking_doors = searchExits(map, end_point);
     }
     if(verbose) {
         puts("Back propagation :");
@@ -254,7 +257,7 @@ Frame* pathThroughDoors(Map* base_map, Coord start, bool verbose){
         printFrameList(best_path);
     }
 
-    return best_path->first == NULL ? NULL : best_path->first->data;
+    return best_path;
 }
 
 Frame* getDoorByCoord(List* doors, Coord pos){
@@ -266,18 +269,26 @@ Frame* getDoorByCoord(List* doors, Coord pos){
     return current_door->data;
 }
 
-bool searchEasySolution(Map* map, Stack* actions, size_t max_actions, bool verbose){
-    // Start and end point
+bool searchEasySolution(Map* base_map, Stack* actions, size_t max_actions, bool verbose){
+    // Setup the map
+    Map* map = copyMap(base_map);
+    closeAllDoors(map);
     Coord end_point, player;
     player.x = START_X; player.y = START_Y;
     end_point.x = END_X; end_point.y = END_Y;
 
     size_t nb_actions = 0;
-    if(verbose) printf("\n");
+    if(verbose) {
+        printf("\n");
+        display(map, false);
+    }
 
-    Frame* blocking_door = pathThroughDoors(map, player, false);
+    List* blocking_doors = pathThroughDoors(map, player, false);
+    Frame* blocking_door = getFirstClosedDoor(map, blocking_doors);
     while(blocking_door != NULL) {
+        blocking_door = locateFrameByCoord(map, blocking_door->pos, false);
         Frame* lever = getDoorLever(map, blocking_door, player, actions);
+        if(lever != NULL) locateFrameByCoord(map, lever->pos, false);
         bool can_exit = false;
         if(lever != NULL){
             // Try to open the door
@@ -293,11 +304,26 @@ bool searchEasySolution(Map* map, Stack* actions, size_t max_actions, bool verbo
             if(verbose){
                 puts("Block this door :");
                 printFrame(blocking_door);
+                printf("\n");
             }
             blocking_door->id = 3;
         }
-        blocking_door = pathThroughDoors(map, player, false);
+        blocking_doors = pathThroughDoors(map, player, false);
+        blocking_door = getFirstClosedDoor(map, blocking_doors);
     }
 
     return pathfinding(map, player, end_point, false);
+}
+
+Frame* getFirstClosedDoor(Map* map, List* path){
+    if(path == NULL) return NULL;
+    ListElement* current = path->first;
+    Frame* res = NULL;
+    while (current != NULL) {
+        res = current->data;
+        res = locateFrameByCoord(map, res->pos, false);
+        if(!res->state) break;
+        current = current->next;
+    }
+    return res;
 }

@@ -1,19 +1,17 @@
 #include "../headers/header.h"
 #include <json-c/json_object.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
-int nbRand(int nbMin, int nbMax)
+int nbRand(int nb_min, int nb_max)
 {
-    if ((nbMax >= 0) && (nbMin<nbMax))
+    if ((nb_max >= 0) && (nb_min<nb_max))
     {   
         int x = 0;
         do
         {
-            //x = 1 + rand()/((RAND_MAX + 1u)/nbMax);
-            //x = (rand() % (nbMax - nbMin + 1)) + nbMin;
-            x = (int)((double)rand() / ((double)RAND_MAX + 1) * ((double)nbMax - (double)nbMin)) + nbMin;
-
-        } while (x < nbMin);      
+            x = (int)((double)rand() / ((double)RAND_MAX + 1) * ((double)nb_max - (double)nb_min)) + nb_min;
+        } while (x < nb_min);      
         return x;
     }
     return EXIT_FAILURE;
@@ -178,14 +176,14 @@ int placeDoor(Map* map, bool verbose)
         do 
         {
             item = locateFrameByCoord(map, createCoord(x, y), verbose);
-            y++;
             watchDogs2++;
-            if(x == 14 && y == 7) 
+            if(x == END_X && y == END_Y && item == NULL) 
             {
                 if (verbose) puts("FIN ATTEINTE");
                 creation = false;
                 reachEnd = true;
             }
+            y++;
         } while(item == NULL && y < 15 && watchDogs2 < 20);
         y--;
         bottom.y = y;
@@ -271,29 +269,25 @@ int placeDoor(Map* map, bool verbose)
                     Coord tmp;
                     
                     if(top.x == 0 && top.y == 0) tmp = createCoord(nbRand(top.x,bottom.x), nbRand(top.y, bottom.y));
-                    else if(top.y == 0 && bottom.x == 14) tmp = createCoord(nbRand(top.x+1,bottom.x), nbRand(top.y, bottom.y));
+                    else if(top.y == 0 && bottom.x == 14) tmp = createCoord(nbRand(top.x+1,bottom.x+1), nbRand(top.y, bottom.y));
                     else if(bottom.x == 14 && bottom.y == 14) tmp = createCoord(nbRand(top.x+1,bottom.x+1), nbRand(top.y+1, bottom.y+1));
-                    else if(top.x == 0 && bottom.y == 14) createCoord(nbRand(top.x,bottom.x), nbRand(top.y+1, bottom.y+1));
-                    else if (top.y == 0) tmp = createCoord(nbRand(top.x+1,bottom.x), nbRand(top.y, bottom.y));
-                    else if (bottom.y == 14) tmp = createCoord(nbRand(top.x+1,bottom.x), nbRand(top.y+1, bottom.y+1));
+                    else if(top.x == 0 && bottom.y == 14) tmp = createCoord(nbRand(top.x,bottom.x), nbRand(top.y+1, bottom.y+1));
                     else  tmp = createCoord(nbRand(top.x+1,bottom.x), nbRand(top.y+1, bottom.y));
-
-                    
-                    printf("%zu ; %zu ||| ", tmp.x, tmp.y);
                     
                     lever = createFrameByCoord(tmp ,ID_BUTTON);  
                     addFrameInMap(map, lever);
-                    if(pathfinding(map, start, end, verbose) == false)
-                    {
-                        removeFromList(map->items, lever, true);
-                        if (verbose) puts("levier retiré");
-                    }
-                    else
+                    if(pathfinding(map, start, end, verbose) == true && (tmp.x != 0 && tmp.y != 7))
                     {
                         posed = true;
                         addElementInButton(lever, door);
                         addElementInButton(door, lever);
                         if (verbose) puts("levier posé");
+                    }
+                    else
+                    {
+                        removeFromList(map->items, lever, true);
+                        if (verbose) puts("levier retiré");
+
                     }
                     watchDogs2++;
                 }
@@ -306,14 +300,14 @@ int placeDoor(Map* map, bool verbose)
     return EXIT_SUCCESS;
 }
 
-bool passePartout(Map* map, int wallPos, int start, int end, int dir, bool verbose)
+bool passePartout(Map* map, int wall_pos, int start, int end, int dir, bool verbose)
 {    
     Frame* tmp;
     if (dir == 1) // 1 for a vertical wall
     {
         for (int i = start; i <= end; i++)
         {
-            tmp = locateFrameByCoord(map, createCoord(wallPos, i), verbose);
+            tmp = locateFrameByCoord(map, createCoord(wall_pos, i), verbose);
             if(tmp->id == ID_DOOR) return false;
         }
     }
@@ -321,7 +315,7 @@ bool passePartout(Map* map, int wallPos, int start, int end, int dir, bool verbo
     {
         for (int i = start; i <= end; i++)
         {
-            tmp = locateFrameByCoord(map, createCoord(i, wallPos), verbose);
+            tmp = locateFrameByCoord(map, createCoord(i, wall_pos), verbose);
             if(tmp->id == ID_DOOR) return false;
         }
     }

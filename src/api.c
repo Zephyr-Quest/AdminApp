@@ -264,10 +264,8 @@ bool uploadNewMap(Map* map){
     char* path = malloc(21 + (MAX_NAME_SIZE * 2) * sizeof(char));
     strcpy(path, "/newMap?name=");
     strcat(path, map->name);
-    if(map->author != NULL){
-        strcat(path, "&author=");
-        strcat(path, map->author);
-    }
+    strcat(path, "&author=");
+    strcat(path, map->author);
     return postRequest(path, map_str);
 }
 

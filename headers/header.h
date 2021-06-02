@@ -294,8 +294,6 @@ Coord* getNearPoints(Coord center);
 // Try to find a way from 'start' point to 'end' point
 bool pathfinding(Map* map, Coord start, Coord end, bool verbose);
 
-Frame* pathThroughDoors(Map* map, Coord start, bool verbose);
-
 // Search all of blocking door
 List* searchExits(Map* map, Coord player);
 
@@ -312,10 +310,13 @@ bool moveTo(Map* map, Coord* player, Coord destination, bool verbose);
 bool solve(Map* map, Stack* actions, bool verbose);
 
 // Search optimise solution
-Frame* pathThroughDoors(Map* base_map, Coord start, bool verbose);
+List* pathThroughDoors(Map* base_map, Coord start, bool verbose);
 
 // Get a door by its coord in a List
 Frame* getDoorByCoord(List* doors, Coord pos);
 
 // Try to find an easier solution
 bool searchEasySolution(Map* map, Stack* actions, size_t max_actions, bool verbose);
+
+// Get the first closed door in a door list
+Frame* getFirstClosedDoor(Map* map, List* path);

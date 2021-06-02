@@ -191,17 +191,26 @@ bool compareFrame(Frame* frame1, Frame* frame2) {
 
 void printFrame(Frame* frame) {
     if(frame == NULL) puts("The frame is NULL");
-    else printf("id: %d, x: %d, y: %d\n", frame->id, frame->x, frame->y);
+    else printf("id: %d, x: %ld, y: %ld\n", frame->id, frame->pos.x, frame->pos.y);
 }
 
 Map* copyMap(Map* map) {
-    Map* tmp = createMap(map->name, map->author);
+    Map* tmp_map = createMap(map->name, map->author);
     ListElement* current = map->items->first;
     while (current != NULL) {
-        appendAtList(tmp->items, current->data);
+        Frame* current_frame = current->data;
+        Frame* tmp_frame = createFrameByCoord(current_frame->pos, current_frame->id);
+        ListElement* current_usage = current_frame->usages->first;
+        while(current_usage != NULL){
+            Frame* tmp_usage = createFrameByCoord(current_usage->data->pos, current_usage->data->id);
+            appendAtList(tmp_frame->usages, tmp_usage);
+            current_usage = current_usage->next;
+        }
+        tmp_frame->state = current_frame->state;
+        appendAtList(tmp_map->items, tmp_frame);
         current = current->next;
     }
-    return tmp;
+    return tmp_map;
 }
 
 void closeAllDoors(Map* map){
