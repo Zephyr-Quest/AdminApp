@@ -326,3 +326,6 @@ bool searchEasySolution(Map* map, Stack* actions, size_t max_actions, bool verbo
 
 // Get the first closed door in a door list
 Frame* getFirstClosedDoor(Map* map, List* path);
+
+// Get the best way to succed a level
+Stack getBestPath(Map* map, Stack* solution, bool verbose);

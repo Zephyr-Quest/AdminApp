@@ -34,7 +34,7 @@ int main() {
         Map* to_solve = maps[map_id];
         printf("The map is named '%s' and was made by %s :\n", to_solve->name, to_solve->author);
         printf("\n");
-        display(to_solve, true);
+        display(to_solve, false);
 
         // Solve it or not
         char choice;
@@ -81,31 +81,17 @@ int main() {
                     }
                 } else final_sol = actions;
 
-                // Get the full path
-                printf("\n");
-                Coord player; player.x = START_X; player.y = START_Y;
-                Stack path = initStack();
-                moveTo(to_solve, &player, final_sol.first->data, &path, false);
-                moveTo(to_solve, &player, final_sol.first->next->data, &path, false);
-                current = path.first;
-                size_t i = 1;
-                char path_map[SIZE_MAP][SIZE_MAP];
-                generateMapArray(path_map, to_solve);
-                while(current != NULL){
-                    Coord current_point = current->data;
-                    path_map[current_point.y][current_point.x] = -i;
-                    current = current->next;
-                    i++;
-                }
-                printMapArray(path_map, false);
-
                 // Update database
                 printf("\nDo you want to update the database ? (y/n) ");
                 scanf(" %c", &choice);
                 if(choice == 'y'){
+                    // Get the full path
+                    puts("\nThe following path has been calculated from the previous solution :\n");
+                    Stack path = getBestPath(to_solve, &final_sol, true);
+
                     // Validate the map
-                    bool success = setCanBeDone(to_solve, &final_sol);
-                    if(success) puts("Everything is good !");
+                    bool success = setCanBeDone(to_solve, &path);
+                    if(success) puts("The solution was sent with no error");
                     else puts("Something went wrong...");
                 }
             }

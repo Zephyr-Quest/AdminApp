@@ -64,7 +64,20 @@ bool moveTo(Map* base_map, Coord* player, Coord destination, Stack* keep_path, b
         }
     }
 
-    if(end_reached) *player = destination;
+    if(end_reached) {
+        Coord* near_points = getNearPoints(destination);
+        int i = 0;
+        bool point_chose = false;
+        while(isInMap(near_points[i]) && i < 4 && !point_chose){
+            Coord current_near = near_points[i];
+            char current_near_value = distance_map[current_near.y][current_near.x];
+            if(!canBeHover(current_near_value) && !isObstacle(current_near_value)){
+                point_chose = true;
+                *player = current_near;
+            }
+            i++;
+        }
+    }
 
     return end_reached;
 }
@@ -342,4 +355,42 @@ Frame* getFirstClosedDoor(Map* map, List* path){
         current = current->next;
     }
     return res;
+}
+
+Stack getBestPath(Map* map, Stack* solution, bool verbose){
+    // Setup the simulation
+    Coord player, end_point;
+    player.x = START_X; player.y = START_Y;
+    end_point.x = END_X; end_point.y = END_Y;
+    Stack path = initStack();
+    put(&path, player);
+
+    // Start the simulation, loop through all actions gave by the 'solution' stack
+    Element* current_action = solution->first;
+    while(current_action != NULL){
+        Frame* lever = locateFrameByCoord(map, current_action->data, true);
+        moveTo(map, &player, current_action->data, &path, false);
+        useLever(map, lever, &player, false);
+        put(&path, player);
+        current_action = current_action->next;
+    }
+    moveTo(map, &player, end_point, &path, false);
+    put(&path, end_point);
+
+    if(verbose){
+        Element* current = path.first;
+        size_t i = 1;
+        char path_map[SIZE_MAP][SIZE_MAP];
+        generateMapArray(path_map, map);
+        while(current != NULL && i < 128){
+            Coord current_point = current->data;
+            path_map[current_point.y][current_point.x] = -i;
+            current = current->next;
+            i++;
+        }
+        if(i >= 128) puts("There are two many actions to print all of them but they are stored in the stack.");
+        else printMapArray(path_map, false);
+    }
+
+    return path;
 }
