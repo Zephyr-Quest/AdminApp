@@ -122,8 +122,14 @@ struct Stack {
 // Init a stack
 Stack initStack();
 
-// Put a new value to the stack
+// Put a new value to the end of the stack
 void put(Stack *stack, Coord data);
+
+// Put a new value to the start of the stack
+void putAtStart(Stack *stack, Coord data);
+
+// Put a new value to the stack at the specified rank
+void putAtRank(Stack *stack, Coord data, size_t rank);
 
 // Pull the first value of the stack (remove it)
 Coord pull(Stack *stack);
@@ -153,9 +159,9 @@ List* getAllItemInMap(Map* map, int id_object);
 // Create coordonates
 Coord createCoord(int pos_x, int pos_y);
 
-// [DEPRECIATED] 
+// [DEPRECIATED]
 // Replace by createFrameByCoord (temporarly)
-// Create a simple frame 
+// Create a simple frame
 Frame * createFrame(int posX, int posY, int id_object);
 
 // Create a simple frame mais en version cool
@@ -170,7 +176,7 @@ Map* createMap(char name[], char author[]);
 // Add a frame in the map
 void addFrameInMap(Map* map, Frame* frame);
 
-// [DEPRECIATED] 
+// [DEPRECIATED]
 // Replace by createFrameByCoord (temporarly)
 // return the frame at position x, y
 Frame* locateFrame(Map* map, int posx, int posy, bool verbose);
@@ -304,7 +310,7 @@ Frame* getDoorLever(Map* map, Frame* door, Coord player, Stack* actions);
 bool useLever(Map* map, Frame* lever, Coord* player, bool verbose);
 
 // Move the player to a specific location
-bool moveTo(Map* map, Coord* player, Coord destination, bool verbose);
+bool moveTo(Map* map, Coord* player, Coord destination, Stack* keep_path, bool verbose);
 
 // Try to solve
 bool solve(Map* map, Stack* actions, bool verbose);

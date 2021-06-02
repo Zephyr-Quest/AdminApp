@@ -34,21 +34,21 @@ int main() {
         Map* to_solve = maps[map_id];
         printf("The map is named '%s' and was made by %s :\n", to_solve->name, to_solve->author);
         printf("\n");
-        display(to_solve, false);
-        
+        display(to_solve, true);
+
         // Solve it or not
         char choice;
         printf("Do you want to solve it ? (y/n) ");
         scanf(" %c", &choice);
         if(choice == 'y'){
             // Solve the map
-            Stack actions = initStack();
+            Stack final_sol, actions = initStack();
             bool can_be_solved = solve(to_solve, &actions, false);
             puts(can_be_solved ? "It can be solved !" : "It can't be solved...");
             if(can_be_solved){
                 puts("\nSolution :");
                 Element* current = actions.first;
-                if(current == NULL) puts("No actions is required to finish this level !");
+                if(current == NULL) puts("No actions is required to succeed this level !");
                 else {
                     size_t i = 1;
                     while(current != NULL){
@@ -58,7 +58,8 @@ int main() {
                         i++;
                     }
                 }
-                
+
+                // Try to optimise the solution
                 if(countOfStack(&actions) > 1){
                     puts("\nTrying to find an easier solution :");
                     Stack easy_actions = initStack();
@@ -66,25 +67,44 @@ int main() {
                     if(is_easier_sol && countOfStack(&easy_actions) < countOfStack(&actions)){
                         puts("\nEasier solution :");
                         Element* current = easy_actions.first;
-                        if(current == NULL) puts("No actions is required to finish this level !");
-                        else {
-                            size_t i = 1;
-                            while(current != NULL){
-                                Coord current_lever = current->data;
-                                printf("Step %ld -> (%ld:%ld)\n", i, current_lever.x, current_lever.y);
-                                current = current->next;
-                                i++;
-                            }
+                        size_t i = 1;
+                        while(current != NULL){
+                            Coord current_lever = current->data;
+                            printf("Step %ld -> (%ld:%ld)\n", i, current_lever.x, current_lever.y);
+                            current = current->next;
+                            i++;
                         }
-                    } else puts("There isn't an easier solution... (sorry)");
+                        final_sol = easy_actions;
+                    } else {
+                        puts("There isn't an easier solution... (sorry)");
+                        final_sol = actions;
+                    }
+                } else final_sol = actions;
+
+                // Get the full path
+                printf("\n");
+                Coord player; player.x = START_X; player.y = START_Y;
+                Stack path = initStack();
+                moveTo(to_solve, &player, final_sol.first->data, &path, false);
+                moveTo(to_solve, &player, final_sol.first->next->data, &path, false);
+                current = path.first;
+                size_t i = 1;
+                char path_map[SIZE_MAP][SIZE_MAP];
+                generateMapArray(path_map, to_solve);
+                while(current != NULL){
+                    Coord current_point = current->data;
+                    path_map[current_point.y][current_point.x] = -i;
+                    current = current->next;
+                    i++;
                 }
-                
+                printMapArray(path_map, false);
+
                 // Update database
                 printf("\nDo you want to update the database ? (y/n) ");
                 scanf(" %c", &choice);
                 if(choice == 'y'){
                     // Validate the map
-                    bool success = setCanBeDone(to_solve, &actions);
+                    bool success = setCanBeDone(to_solve, &final_sol);
                     if(success) puts("Everything is good !");
                     else puts("Something went wrong...");
                 }
@@ -123,7 +143,7 @@ int main() {
             }
             puts("Do you want to upload it ? (y/n)");
             scanf(" %c", &choice);
-            char* map_name; 
+            char* map_name;
             if(choice == 'y')
             {
                 puts("How do you want to name it ?");
@@ -142,8 +162,8 @@ int main() {
                 puts("Upload ? (y/n)");
                 scanf(" %c", &choice);
                 if(choice == 'y')
-                {       
-                    puts("name : "); 
+                {
+                    puts("name : ");
                     scanf("%s", map_name);
                     strcpy(map2->name, map_name);
                     map_name = "Unsolvable map";

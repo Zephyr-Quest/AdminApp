@@ -1,19 +1,21 @@
 #include "../headers/header.h"
 #include <stddef.h>
 
-bool moveTo(Map* base_map, Coord* player, Coord destination, bool verbose){
+bool moveTo(Map* base_map, Coord* player, Coord destination, Stack* keep_path, bool verbose){
     // Search and print distances
     char distance_map[SIZE_MAP][SIZE_MAP];
     generateMapArray(distance_map, base_map);
     int distance = 1;
     Stack near_points = initStack();
     put(&near_points, *player);
+    bool end_reached = false;
 
+    // Front propagation
     while(near_points.first != NULL){
         Stack new_near_points = initStack();
 
         // Loop through the last near points file
-        while(near_points.first != NULL){
+        while(near_points.first != NULL && !end_reached){
             Coord current_point = pull(&near_points);
 
             //Find near points of the current point and print distances on them
@@ -22,7 +24,8 @@ bool moveTo(Map* base_map, Coord* player, Coord destination, bool verbose){
             while(current_nears[i].x != SIZE_MAP && current_nears[i].y != SIZE_MAP && i < 4){
                 Coord current_near_point = current_nears[i];
                 char current_near_value = distance_map[current_near_point.y][current_near_point.x];
-                if(canBeHover(current_near_value) && !(isCoordsEquals(current_near_point, *player) || isCoordsEquals(current_near_point, destination))){
+                if(isCoordsEquals(current_near_point, destination)) end_reached = true;
+                else if(canBeHover(current_near_value) && !isCoordsEquals(current_near_point, *player)){
                     distance_map[current_near_point.y][current_near_point.x] = distance;
                     put(&new_near_points, current_near_point);
                 }
@@ -34,27 +37,40 @@ bool moveTo(Map* base_map, Coord* player, Coord destination, bool verbose){
     }
     if(verbose) printMapArray(distance_map, true);
 
-    // Check if a path exists
-    bool res = false;
-    Coord* nears_endpoint = getNearPoints(destination);
-    int i = 0;
-    while(isInMap(nears_endpoint[i]) && i < 4){
-        Coord current_near = nears_endpoint[i];
-        char current_near_value = distance_map[current_near.y][current_near.x];
-        if((!canBeHover(current_near_value) && !isObstacle(current_near_value)) || isCoordsEquals(current_near, *player)){
-            // A path exists
-            res = true;
-            player->x = current_near.x;
-            player->y = current_near.y;
+    // Back propagation
+    if(keep_path != NULL && end_reached){
+        Coord current_point = destination;
+        char d = 0;
+        bool start_reached = false;
+        const size_t path_size = countOfStack(keep_path);
+        while(!start_reached){
+            Coord* near_points = getNearPoints(current_point);
+            int i = 0;
+            bool path_chose = false;
+            while(isInMap(near_points[i]) && i < 4 && !path_chose){
+                Coord current_near = near_points[i];
+                char current_near_value = distance_map[current_near.y][current_near.x];
+                if(isCoordsEquals(current_near, *player)) start_reached = true;
+                else if(!canBeHover(current_near_value) && !isObstacle(current_near_value)){
+                    if(current_near_value <= d || d == 0){
+                        current_point = current_near;
+                        d = current_near_value;
+                        path_chose = true;
+                        putAtRank(keep_path, current_point, path_size);
+                    }
+                }
+                i++;
+            }
         }
-        i++;
     }
 
-    return res;
+    if(end_reached) *player = destination;
+
+    return end_reached;
 }
 
 bool pathfinding(Map* base_map, Coord start, Coord end, bool verbose){
-    return moveTo(base_map, &start, end, verbose);
+    return moveTo(base_map, &start, end, NULL, verbose);
 }
 
 Coord* getNearPoints(Coord center){
@@ -87,7 +103,7 @@ List* searchExits(Map* map, Coord player){
     ListElement* current = map->items->first;
     while (current != NULL) {
         if (current->data->id == ID_DOOR && !current->data->state)
-            appendAtList(closed_doors, current->data); 
+            appendAtList(closed_doors, current->data);
         current = current->next;
     }
 
@@ -144,7 +160,7 @@ bool useLever(Map* map, Frame* lever, Coord* player, bool verbose){
     lever_coord.y = lever->y;
 
     // Move the player to the lever
-    if(!moveTo(map, player, lever_coord, false)) return false;
+    if(!moveTo(map, player, lever_coord, NULL, false)) return false;
 
     // Open or close doors
     ListElement* current = lever->usages->first;
@@ -174,7 +190,7 @@ bool solve(Map* base_map, Stack* interactions, bool verbose){
     bool res = true;    // true means resolvable, false means unresolvable
     size_t nb_actions = 0;
     if(verbose) printf("\n");
-    
+
     while(!pathfinding(map, player, end_point, false) && res){
         List* blocking_doors = searchExits(map, player);
         bool can_exit = false;
