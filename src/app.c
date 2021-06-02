@@ -1,8 +1,8 @@
 #include "../headers/header.h"
 #include <stdio.h>
 
-#define SOLVER
-// #define GENERATOR
+// #define SOLVER
+#define GENERATOR
 
 int main() {
     srand(time(NULL));
@@ -80,14 +80,14 @@ int main() {
         Map* map2 = generateRandomMap();
         display(map2, false);
         
-        /*Stack test = initStack();
-        bool tmp = solve(map2, &test, true);
+        Stack test = initStack();
+        bool tmp = solve(map2, &test, false);
         Coord end_point, player;
         player.x = START_X; player.y = START_Y;
         end_point.x = END_X; end_point.y = END_Y;
         pathfinding(map2, player, end_point, true);
         if(tmp == true) puts("solvable");
-        else puts("non solvable");*/
+        else puts("non solvable");
     #endif
 
     return 0;

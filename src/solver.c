@@ -220,6 +220,7 @@ Frame* pathThroughDoors(Map* base_map, Coord start, bool verbose){
         blocking_doors = searchExits(map, start);
     }
     if(verbose) {
+        puts("Front propagation :");
         display(map, false);
         printFrameList(super_doors);
     }
@@ -228,10 +229,10 @@ Frame* pathThroughDoors(Map* base_map, Coord start, bool verbose){
     // Back propagation
     List* best_path = initList();
     while (!pathfinding(map, end_point, start, false)) {
-        // Loop through blocking_doors
         blocking_doors = searchExits(map, end_point);
         ListElement* current = blocking_doors->first;
         Frame* chosen_door = NULL;
+        // Loop through blocking_doors
         while (current != NULL) {
             Frame* blocking_door = current->data;
             blocking_door = getDoorByCoord(super_doors, blocking_door->pos);
@@ -244,8 +245,12 @@ Frame* pathThroughDoors(Map* base_map, Coord start, bool verbose){
         if(chosen_door != NULL) {
             chosen_door->state = true;
             appendAtList(best_path, chosen_door);
-            if (verbose) printFrame(chosen_door);
         }
+    }
+    if(verbose) {
+        puts("Back propagation :");
+        display(map, false);
+        printFrameList(best_path);
     }
 
     return best_path->first == NULL ? NULL : best_path->first->data;
