@@ -53,7 +53,7 @@ int addButtonInMap(Map* map, Frame* button, Frame* door) {
 }
 
 Map* generateRandomMap() {
-    Map* map = createMap("Random", "Generatoooooooor");
+    Map* map = createMap("Random", "Generator");
     if (map == NULL) return NULL;
 
     trumpWall(map, 1, false);

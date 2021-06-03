@@ -106,7 +106,7 @@ int main() {
         Map* unsolvable_map = NULL;
         bool tmp;
         bool exit;
-        char map_name;
+        char map_name[255];
 
 
         puts("\nHi ! Would you like to create a map ? (y/n)");
@@ -140,11 +140,12 @@ int main() {
             {
                 puts("How do you want to name it ?");
                 puts("The name of the card must not be longer than 250 characters and should not contain any non-alphanumeric characters.");
-                scanf("%249s", map_name);
+                scanf("%s", map_name);
                 strcpy(map2->name, map_name);
-                // tmp = uploadNewMap(map2);
-                // if(tmp == true) puts("The map has been upload ! :happy_face:");
-                // else puts("The map hasn't been upload :sad_face:");
+
+                tmp = uploadNewMap(map2);
+                if(tmp == true) puts("The map has been upload ! :happy_face:");
+                else puts("The map hasn't been upload :sad_face:");
             }
             printf("\n");
             if(unsolvable_map != NULL)
@@ -161,9 +162,9 @@ int main() {
                     {
                         puts("name : ");
                         scanf("%s", map_name);
-                        strcpy(map2->name, map_name);
-                        map_name = "Unsolvable map";
-                        strcpy(map2->author, map_name);
+                        strcpy(unsolvable_map->name, map_name);
+                        strcpy(unsolvable_map->author, "Unsolvable Map");
+
                         tmp = uploadNewMap(unsolvable_map);
                         if(tmp == true) puts("The map has been upload ! :happy_face:");
                         else puts("The map hasn't been upload :sad_face:");
