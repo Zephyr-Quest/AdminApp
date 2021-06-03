@@ -102,9 +102,11 @@ int main() {
     #ifdef GENERATOR
 
         char choice;
-        Map* map2;
+        Map* map2 = NULL;
+        Map* unsolvable_map = NULL;
         bool tmp;
-        Map* unsolvable_map;
+        bool exit;
+        char map_name;
 
 
         puts("\nHi ! Would you like to create a map ? (y/n)");
@@ -116,47 +118,56 @@ int main() {
 
             do
             {
+                watch_dogs++;
                 map2 = generateRandomMap();
                 tmp = solve(map2, &test, false);
                 if(tmp == false) unsolvable_map = map2;
-                watch_dogs++;
-            } while(tmp == false && watch_dogs < 10);
-            printf("A solvable map as been generated in %d try, do you want to show it ? (y/n)\n", watch_dogs);
-            scanf(" %c", &choice);
-            if(choice == 'y')
-            {
-                display(map2, false);
-            }
+                else
+                {
+                    puts("A solvable map as been generated");   
+                    display(map2, false);
+                    puts("Do you want to generate an other map (this one will be deleted) ? (y/n)");
+                    scanf(" %c", &choice);
+                    if(choice != 'y')
+                    {
+                        exit = true;
+                    }
+                }
+            } while(exit == false && watch_dogs < 50);
             puts("Do you want to upload it ? (y/n)");
             scanf(" %c", &choice);
-            char* map_name;
             if(choice == 'y')
             {
                 puts("How do you want to name it ?");
                 puts("The name of the card must not be longer than 250 characters and should not contain any non-alphanumeric characters.");
-                scanf("%s", map_name);
+                scanf("%249s", map_name);
                 strcpy(map2->name, map_name);
-                tmp = uploadNewMap(map2);
-                if(tmp == true) puts("The map has been upload ! :happy_face:");
-                else puts("The map hasn't been upload :sad_face:");
+                // tmp = uploadNewMap(map2);
+                // if(tmp == true) puts("The map has been upload ! :happy_face:");
+                // else puts("The map hasn't been upload :sad_face:");
             }
-
-            if(watch_dogs > 1)
+            printf("\n");
+            if(unsolvable_map != NULL)
             {
-                puts("Map non faisable :");
-                display(unsolvable_map, false);
-                puts("Upload ? (y/n)");
+                puts("An unsolvable map as been generated...");
+                puts("Do you want to display it ? (y/n)");
                 scanf(" %c", &choice);
                 if(choice == 'y')
                 {
-                    puts("name : ");
-                    scanf("%s", map_name);
-                    strcpy(map2->name, map_name);
-                    map_name = "Unsolvable map";
-                    strcpy(map2->author, map_name);
-                    tmp = uploadNewMap(unsolvable_map);
-                    if(tmp == true) puts("The map has been upload ! :happy_face:");
-                    else puts("The map hasn't been upload :sad_face:");
+                    display(unsolvable_map, false);
+                    puts("Do you want to upload it ? (y/n)");
+                    scanf(" %c", &choice);
+                    if(choice == 'y')
+                    {
+                        puts("name : ");
+                        scanf("%s", map_name);
+                        strcpy(map2->name, map_name);
+                        map_name = "Unsolvable map";
+                        strcpy(map2->author, map_name);
+                        tmp = uploadNewMap(unsolvable_map);
+                        if(tmp == true) puts("The map has been upload ! :happy_face:");
+                        else puts("The map hasn't been upload :sad_face:");
+                    }
                 }
             }
         }

@@ -408,16 +408,5 @@ bool checkMap(Map* map, bool verbose){
         return false;
     }
 
-    ListElement* current = map->items->first;
-    size_t nb_items = 0;
-    while(current != NULL && nb_items < MAX_OBJECT){
-        current = current->next;
-        nb_items++;
-    }
-    if(nb_items >= MAX_OBJECT){
-        if(verbose) puts("There are too many objects in the map.");
-        return false;
-    }
-
     return true;
 }
