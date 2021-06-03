@@ -8,8 +8,14 @@ int main() {
     srand(time(NULL));
 
     char choice_app;
-    puts("Welcome to Zephyr Quest Admin App.");
-    puts("What do you want to do ?");
+    puts("\nWelcome to Zephyr Quest Admin App.");
+    puts("\nWe use ASCII to print map in the terminal :");
+    puts("A lever -> u");
+    puts("A door -> l");
+    puts("A wall -> &");
+    puts("A hole -> @");
+    puts("A torch -> *");
+    puts("\nWhat do you want to do ?");
     puts("(1) - Generator");
     puts("(2) - Solver");
     puts("Choose 1 - 2 to open app. Press CTRL + C (^C) for exit the app.");

@@ -266,7 +266,24 @@ bool uploadNewMap(Map* map){
     strcat(path, map->name);
     strcat(path, "&author=");
     strcat(path, map->author);
-    return postRequest(path, map_str);
+    bool upload = postRequest(path, map_str);
+
+    bool validate = false;
+    Stack final_sol, actions = initStack();
+    bool can_be_solved = checkMap(map, true) && solve(map, &actions, false);
+    if(can_be_solved){
+        if(countOfStack(&actions) > 1){
+            Stack easy_actions = initStack();
+            bool is_easier_sol = searchEasySolution(map, &easy_actions, countOfStack(&actions), false);
+            if(is_easier_sol && countOfStack(&easy_actions) < countOfStack(&actions))
+                final_sol = easy_actions;
+            else final_sol = actions;
+        } else final_sol = actions;
+        Stack path = getBestPath(map, &final_sol, false);
+        bool success = setCanBeDone(map, &path);
+        validate = success;
+    }
+    return upload && validate;
 }
 
 bool setCanBeDone(Map* map, Stack* actions){
