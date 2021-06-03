@@ -18,6 +18,6 @@ linux: $(SRC_FILES)
 
 run:
 	$(OUTPUT_DIR)/$(NAME)
-		
+
 clean:
-	rm -rf $(NAME)
+	rm -r $(OUTPUT_DIR)

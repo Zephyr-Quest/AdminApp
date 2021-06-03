@@ -19,15 +19,15 @@ char* getRequest(const char* path, long* response_code){
     CURL *curl_handle;
     CURLcode code;
     bool error = false;
-    
+
     // Init the request memory
     struct MemoryStruct chunk;
     chunk.memory = malloc(1);
     chunk.size = 0;
 
     // Init request settings
-    char* url = malloc((43 + 21 + (MAX_NAME_SIZE * 2)) * sizeof(char));
-    strcpy(url, "http://localhost/ZephyrQuest/server/api.php");
+    char* url = malloc((31 + 21 + (MAX_NAME_SIZE * 2)) * sizeof(char));
+    strcpy(url, "http://localhost/server/api.php");
     strcat(url, path);
     curl_global_init(CURL_GLOBAL_ALL);
     curl_handle = curl_easy_init();
@@ -51,7 +51,7 @@ char* getRequest(const char* path, long* response_code){
     // Make a cleanup
     curl_easy_cleanup(curl_handle);
     curl_global_cleanup();
-    
+
     // Return the request result
     if(!error) {
         char* res = malloc(chunk.size * sizeof(char));
@@ -74,8 +74,8 @@ bool postRequest(const char* path, const char* post_data){
     chunk.memory = malloc(1);
     chunk.size = 0;
 
-    char* url = malloc((43 + 21 + (MAX_NAME_SIZE * 2)) * sizeof(char));
-    strcpy(url, "http://localhost/ZephyrQuest/server/api.php");
+    char* url = malloc((31 + 21 + (MAX_NAME_SIZE * 2)) * sizeof(char));
+    strcpy(url, "http://localhost/server/api.php");
     strcat(url, path);
 
     curl = curl_easy_init();
