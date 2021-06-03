@@ -43,7 +43,7 @@ int main() {
         if(choice == 'y'){
             // Solve the map
             Stack final_sol, actions = initStack();
-            bool can_be_solved = solve(to_solve, &actions, false);
+            bool can_be_solved = checkMap(to_solve, true) && solve(to_solve, &actions, false);
             puts(can_be_solved ? "It can be solved !" : "It can't be solved...");
             if(can_be_solved){
                 puts("\nSolution :");

@@ -329,3 +329,6 @@ Frame* getFirstClosedDoor(Map* map, List* path);
 
 // Get the best way to succed a level
 Stack getBestPath(Map* map, Stack* solution, bool verbose);
+
+// Check if a map is correct
+bool checkMap(Map* map, bool verbose);

@@ -394,3 +394,30 @@ Stack getBestPath(Map* map, Stack* solution, bool verbose){
 
     return path;
 }
+
+bool checkMap(Map* map, bool verbose){
+    Coord start_point, end_point;
+    start_point.x = START_X; start_point.y = START_Y;
+    end_point.x = END_X; end_point.y = END_Y;
+
+    if(locateFrameByCoord(map, start_point, false) != NULL){
+        if(verbose) puts("The starting point is filled.");
+        return false;
+    } else if(locateFrameByCoord(map, end_point, false) != NULL){
+        if(verbose) puts("The endind point is filled.");
+        return false;
+    }
+
+    ListElement* current = map->items->first;
+    size_t nb_items = 0;
+    while(current != NULL && nb_items < MAX_OBJECT){
+        current = current->next;
+        nb_items++;
+    }
+    if(nb_items >= MAX_OBJECT){
+        if(verbose) puts("There are too many objects in the map.");
+        return false;
+    }
+
+    return true;
+}
