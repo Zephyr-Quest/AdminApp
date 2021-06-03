@@ -18,14 +18,6 @@ linux: $(SRC_FILES)
 
 run:
 	$(OUTPUT_DIR)/$(NAME)
-	
+		
 clean:
 	rm -rf $(NAME)
-
-gen: 
-	clear
-	$(CC) -o $(OUTPUT_DIR)/$(NAME) $(SRC_FILES) $(CFLAGS) -D GENERATOR
-
-solv:
-	clear
-	$(CC) -o $(OUTPUT_DIR)/$(NAME) $(SRC_FILES) $(CFLAGS) -D SOLVER

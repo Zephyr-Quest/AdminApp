@@ -7,7 +7,22 @@
 int main() {
     srand(time(NULL));
 
-    #ifdef SOLVER
+    char choice_app;
+    puts("Welcome to Zephyr Quest Admin App.");
+    puts("What do you want to do ?");
+    puts("(1) - Generator");
+    puts("(2) - Solver");
+    puts("Choose 1 - 2 to open app. Press CTRL + C (^C) for exit the app.");
+    scanf(" %c", &choice_app);
+    while(choice_app != '1' && choice_app != '2') {
+        puts("I'm sorry, I do not understood what do you want to open.");
+        puts("(1) - Generator");
+        puts("(2) - Solver");
+        puts("Choose 1 - 2 to open app. Press CTRL + C (^C) for exit the app.");
+        scanf(" %c", &choice_app);
+    }
+    if(choice_app == '2'){
+        puts("Loading Solver");
         // Get all saved maps
         printf("All maps :\n");
         size_t nb_maps;
@@ -96,11 +111,9 @@ int main() {
                 }
             }
         }
+    } 
 
-    #endif
-
-    #ifdef GENERATOR
-
+    else if (choice_app == '1') {
         char choice;
         Map* map2 = NULL;
         Map* unsolvable_map = NULL;
@@ -173,6 +186,7 @@ int main() {
             }
         }
         puts("Bye");
-    #endif
+    }
+
     return 0;
 }
