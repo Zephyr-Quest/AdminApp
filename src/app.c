@@ -122,7 +122,6 @@ int main() {
     else if (choice_app == '1') {
         char choice;
         Map* map2 = NULL;
-        Map* unsolvable_map = NULL;
         bool tmp;
         bool exit;
         char map_name[255];
@@ -140,17 +139,12 @@ int main() {
                 watch_dogs++;
                 map2 = generateRandomMap();
                 tmp = solve(map2, &test, false);
-                if(tmp == false) unsolvable_map = map2;
-                else
-                {
+                if(tmp) {
                     puts("A solvable map as been generated");   
                     display(map2, false);
                     puts("Do you want to generate an other map (this one will be deleted) ? (y/n)");
                     scanf(" %c", &choice);
-                    if(choice != 'y')
-                    {
-                        exit = true;
-                    }
+                    if(choice != 'y') exit = true;
                 }
             } while(exit == false && watch_dogs < 50);
             puts("Do you want to upload it ? (y/n)");
@@ -167,29 +161,6 @@ int main() {
                 else puts("The map hasn't been upload :sad_face:");
             }
             printf("\n");
-            if(unsolvable_map != NULL)
-            {
-                puts("An unsolvable map as been generated...");
-                puts("Do you want to display it ? (y/n)");
-                scanf(" %c", &choice);
-                if(choice == 'y')
-                {
-                    display(unsolvable_map, false);
-                    puts("Do you want to upload it ? (y/n)");
-                    scanf(" %c", &choice);
-                    if(choice == 'y')
-                    {
-                        puts("name : ");
-                        scanf("%s", map_name);
-                        strcpy(unsolvable_map->name, map_name);
-                        strcpy(unsolvable_map->author, "Unsolvable Map");
-
-                        tmp = uploadNewMap(unsolvable_map);
-                        if(tmp == true) puts("The map has been upload ! :happy_face:");
-                        else puts("The map hasn't been upload :sad_face:");
-                    }
-                }
-            }
         }
         puts("Bye");
     }
